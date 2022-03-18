@@ -36,6 +36,26 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
   })
 })
 
+router.get('/', checkAuthentication, async (req, res, next) => {
+  try {
+    const users = await User.findAll()
+    if(!users) {
+      res.status(400).send({
+        status: 'Failed',
+        message: 'No users found'
+      })
+    } else {
+      res.status(200).send({
+        status: 'Success',
+        message: 'Users found',
+        data: users
+      })
+    }
+  } catch(err) {
+    next(err)
+  }
+})
+
 router.get('/:uuid', checkAuthentication, checkAuthUser, async (req, res, next) => {
   try {
     const user = await User.findOne({
