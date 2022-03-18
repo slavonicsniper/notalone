@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt')
 'use strict';
 const {
   Model
@@ -26,11 +27,22 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'user_id'
       })
     }
+
+    toJSON() {
+      return {...this.get(), id: undefined, password: undefined}
+    }
+
+    async validPassword(password) {
+      return await bcrypt.compare(password, this.password);
+  }
   }
   User.init({
     username: DataTypes.STRING,
     password: DataTypes.STRING,
-    uuid: DataTypes.UUID,
+    uuid: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4
+    },
     email: DataTypes.STRING,
     city: DataTypes.STRING,
     country: DataTypes.STRING,
@@ -38,6 +50,19 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'User',
+    tableName: 'users',
+    hooks: {
+      beforeCreate: async (user) => {
+        if(user.password) {
+          user.password = await bcrypt.hash(user.password, 10)
+        }
+      },
+      beforeUpdate: async (user) => {
+        if(user.changed('password')) {
+          user.password = await bcrypt.hash(user.password, 10)
+        }
+      },
+    }
   });
   return User;
 };
