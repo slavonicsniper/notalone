@@ -4,12 +4,12 @@ const {User} = require('../models')
 const passport = require('passport');
 const { checkAuthUser, checkAuthentication } = require('../services/auth');
 const jwt = require("jsonwebtoken")
-const {sendConfirmationEmail} = require('../services/sendmail')
+const {sendConfirmationEmail, sendResetPasswordEmail} = require('../services/sendmail')
 require("dotenv").config();
 
 router.post('/register', async (req, res, next) => {
   try {
-    const token = await jwt.sign({email: req.body.email}, process.env.JWT_ACC_ACTIVATE, { expiresIn: '1d' })
+    const token = jwt.sign({email: req.body.email}, process.env.JWT_ACC_ACTIVATE, { expiresIn: '1d' })
     req.body.confirmation_code = token
     const {username} = req.body
     const [user, created] = await User.findOrCreate({
@@ -37,9 +37,9 @@ router.post('/register', async (req, res, next) => {
 
 router.get('/confirm/:confirmationCode', async (req, res) => {
   try {
-    const decodedToken = await jwt.verify(req.params.confirmationCode, process.env.JWT_ACC_ACTIVATE)
+    const decodedToken = jwt.verify(req.params.confirmationCode, process.env.JWT_ACC_ACTIVATE)
     if(!decodedToken) {
-      res.status(404).send({
+      res.status(401).send({
         status: 'Failed',
         message: 'Wrong or expired token'
       })      
@@ -68,6 +68,70 @@ router.get('/confirm/:confirmationCode', async (req, res) => {
   } catch(err) {
     next(err)
   }
+})
+
+router.post('/reset-password', async (req, res, next) => {
+  const {email} = req.body
+  try {
+    const user = await User.findOne({
+      where: {
+        email
+      }
+    })
+    if(!user) {
+      res.status(404).send({
+        status: 'Failed',
+        message: 'User not found'
+      })    
+    } else {
+      if (user.status != "Active") {
+        throw createError(401, "Pending Account. Please Verify Your Email!")
+      }
+      const token = jwt.sign({email}, process.env.JWT_RESET_PASSWORD, { expiresIn: '1d' })
+      await user.update({confirmation_code: token})
+      await sendResetPasswordEmail(user.username, user.email, user.confirmation_code)
+      res.status(200).send({
+        status: 'Success',
+        message: 'Password reset link sent',
+      })      
+    }
+  } catch(err) {
+    next(err)
+  }
+
+})
+
+router.put('/reset-password/:confirmationCode', async (req, res, next) => {
+  try {
+    const decodedToken = jwt.verify(req.params.confirmationCode, process.env.JWT_RESET_PASSWORD)
+    if(!decodedToken) {
+      res.status(401).send({
+        status: 'Failed',
+        message: 'Wrong or expired token'
+      })      
+    } else {
+      const {email} = decodedToken
+      const user = await User.findOne({
+        where: {
+          email
+        }
+      })
+      if(!user) {
+        res.status(404).send({
+          status: 'Failed',
+          message: 'User not found'
+        })      
+      } else {
+        await user.update(req.body)
+        res.status(200).send({
+          status: 'Success',
+          message: 'Password reset'
+        })
+      }
+    }
+  } catch(err) {
+    next(err)
+  }  
 })
 
 router.post('/login', passport.authenticate('local'), (req, res) => {
