@@ -12,6 +12,7 @@ initPassport(passport)
 
 var usersRouter = require('./routes/users');
 var availabilitiesRouter = require('./routes/availabilities');
+var activitiesRouter = require('./routes/activities');
 
 var app = express();
 
@@ -35,6 +36,7 @@ app.use(session({
 
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/availabilities', availabilitiesRouter);
+app.use('/api/v1/activities', activitiesRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

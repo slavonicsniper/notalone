@@ -21,13 +21,22 @@ module.exports = (sequelize, DataTypes) => {
         as: 'groups'
       })
     }
+
+    toJSON() {
+      return {...this.get(), id: undefined}
+    }
   }
   Activity.init({
+    uuid: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4
+    },
     name: DataTypes.STRING,
     type: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Activity',
+    tableName: 'activities'
   });
   return Activity;
 };
