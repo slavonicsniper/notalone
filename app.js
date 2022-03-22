@@ -11,6 +11,7 @@ const cors = require('cors')
 initPassport(passport)
 
 var usersRouter = require('./routes/users');
+var availabilitiesRouter = require('./routes/availabilities');
 
 var app = express();
 
@@ -33,6 +34,7 @@ app.use(session({
   // allow passport to use "express-session".
 
 app.use('/api/v1/users', usersRouter);
+app.use('/api/v1/availabilities', availabilitiesRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

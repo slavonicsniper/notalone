@@ -161,7 +161,7 @@ router.get('/', checkAuthentication, async (req, res, next) => {
   }
 })
 
-router.get('/:uuid', checkAuthentication, checkAuthUser, async (req, res, next) => {
+router.get('/profile', checkAuthentication, checkAuthUser, async (req, res, next) => {
   try {
     const user = await User.findOne({
       where: {
@@ -185,7 +185,7 @@ router.get('/:uuid', checkAuthentication, checkAuthUser, async (req, res, next) 
   }
 })
 
-router.put('/:uuid', checkAuthentication, checkAuthUser, async (req, res, next) => {
+router.put('/profile', checkAuthentication, checkAuthUser, async (req, res, next) => {
   try {
     const user = await User.findOne({
       where: {
@@ -210,7 +210,7 @@ router.put('/:uuid', checkAuthentication, checkAuthUser, async (req, res, next) 
   }
 })
 
-router.delete('/:uuid', checkAuthentication, checkAuthUser, async (req, res, next) => {
+router.delete('/profile', checkAuthentication, checkAuthUser, async (req, res, next) => {
   try {
     const user = await User.findOne({
       where: {

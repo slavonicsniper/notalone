@@ -8,6 +8,10 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      uuid: {
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4
+      },
       day: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -22,7 +26,7 @@ module.exports = {
       },
       user_id: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        //allowNull: false,
         references: {
           model: 'users',
           key: 'id'
@@ -35,6 +39,12 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
+      }
+    }, {
+      uniqueKeys: {
+          actions_unique: {
+              fields: ['day', 'start_time', 'end_time', 'user_id']
+          }
       }
     });
   },
