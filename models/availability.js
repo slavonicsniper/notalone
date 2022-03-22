@@ -16,15 +16,24 @@ module.exports = (sequelize, DataTypes) => {
         as: 'user'
       })
     }
+
+    toJSON() {
+      return {...this.get(), id: undefined, user_id: undefined}
+    }
   }
   Availability.init({
     day: DataTypes.STRING,
+    uuid: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4
+    },
     start_time: DataTypes.STRING,
     end_time: DataTypes.STRING,
     user_id: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Availability',
+    tableName: 'availabilities'
   });
   return Availability;
 };
