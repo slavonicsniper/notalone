@@ -8,6 +8,10 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      uuid: {
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4
+      },
       name: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -23,6 +27,12 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
+      }
+    }, {
+      uniqueKeys: {
+          actions_unique: {
+              fields: ['name', 'type']
+          }
       }
     });
   },
