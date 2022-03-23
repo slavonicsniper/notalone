@@ -84,7 +84,7 @@ router.post('/reset-password', async (req, res, next) => {
         message: 'User not found'
       })    
     } else {
-      if (user.status != "Active") {
+      if (user.confirmation_status != "Active") {
         throw createError(401, "Pending Account. Please Verify Your Email!")
       }
       const token = jwt.sign({email}, process.env.JWT_RESET_PASSWORD, { expiresIn: '1d' })

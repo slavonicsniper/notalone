@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     toJSON() {
-      return {...this.get(), id: undefined, password: undefined, status: undefined, confirmation_code: undefined}
+      return {...this.get(), id: undefined, password: undefined, confirmation_status: undefined, confirmation_code: undefined}
     }
 
     async validPassword(password) {
@@ -47,7 +47,7 @@ module.exports = (sequelize, DataTypes) => {
     city: DataTypes.STRING,
     country: DataTypes.STRING,
     age: DataTypes.INTEGER,
-    status: {
+    confirmation_status: {
       type: DataTypes.STRING,
       defaultValue: 'Pending',
       validate: {

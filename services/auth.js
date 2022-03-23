@@ -32,7 +32,7 @@ const login = async (data) => {
         email
       }
     })
-    if (user.status != "Active") {
+    if (user.confirmation_status != "Active") {
       throw createError(401, "Pending Account. Please Verify Your Email!")
     }
     if(!user) {
