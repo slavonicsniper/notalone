@@ -7,32 +7,37 @@ const passport = require('passport');
 const session = require('express-session');
 const {initPassport} = require('./services/auth')
 const cors = require('cors')
-
-initPassport(passport)
+const SequelizeStore = require("connect-session-sequelize")(session.Store);
+const {sequelize} = require('./models')
+const myStore = new SequelizeStore({
+  db: sequelize,
+  tableName: 'sessions'
+});
 
 var usersRouter = require('./routes/users');
 var availabilitiesRouter = require('./routes/availabilities');
 var activitiesRouter = require('./routes/activities');
 
 var app = express();
-
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cors())
-
+app.use(cors({
+  origin: process.env.CLIENT_URL,
+  credentials: true
+}))
 app.use(session({
-    secret: process.env.SECRET,
-    resave: false,
-    saveUninitialized: false,
-  }))
-  // This is the basic express session({..}) initialization.
-  app.use(passport.initialize()) 
-  // init passport on every route call.
-  app.use(passport.session())    
-  // allow passport to use "express-session".
+  secret: process.env.SECRET,
+  resave: false,
+  saveUninitialized: false,
+  store: myStore,
+}))
+myStore.sync()
+app.use(cookieParser(process.env.SECRET));
+app.use(passport.initialize()) 
+app.use(passport.session())    
+initPassport(passport)
 
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/availabilities', availabilitiesRouter);
