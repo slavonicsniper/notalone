@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 const {User} = require('../models')
 const passport = require('passport');
-const { checkAuthUser, checkAuthentication } = require('../services/auth');
+const { checkAuthentication } = require('../services/auth');
 const jwt = require("jsonwebtoken")
 const {sendConfirmationEmail, sendResetPasswordEmail} = require('../services/sendmail')
 require("dotenv").config();
@@ -138,8 +138,26 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
   res.status(200).send({
     status: 'Success',
     message: 'Authenticated',
+    data: {
+      username: req.user.username,
+      uuid: req.user.uuid
+    }
   })
 })
+
+router.get('/logout', checkAuthentication, (req, res, next) => {
+  try {
+    req.logout()
+    res.status(200).send({
+      status: 'Success',
+      message: 'User logged out',
+    })
+  } catch(err) {
+    next(err)
+  }
+})
+
+
 
 router.get('/', checkAuthentication, async (req, res, next) => {
   try {
@@ -161,7 +179,7 @@ router.get('/', checkAuthentication, async (req, res, next) => {
   }
 })
 
-router.get('/profile', checkAuthentication, checkAuthUser, async (req, res, next) => {
+router.get('/profile', checkAuthentication, async (req, res, next) => {
   try {
     const user = await User.findOne({
       where: {
@@ -185,7 +203,7 @@ router.get('/profile', checkAuthentication, checkAuthUser, async (req, res, next
   }
 })
 
-router.put('/profile', checkAuthentication, checkAuthUser, async (req, res, next) => {
+router.put('/profile', checkAuthentication, async (req, res, next) => {
   try {
     const user = await User.findOne({
       where: {
@@ -210,7 +228,7 @@ router.put('/profile', checkAuthentication, checkAuthUser, async (req, res, next
   }
 })
 
-router.delete('/profile', checkAuthentication, checkAuthUser, async (req, res, next) => {
+router.delete('/profile', checkAuthentication, async (req, res, next) => {
   try {
     const user = await User.findOne({
       where: {
