@@ -21,7 +21,6 @@ router.post('/register', async (req, res, next) => {
       res.status(201).send({
         status: 'Success',
         message: 'User registered, please confirm your email',
-        data: user
       })
     }
     else {
@@ -57,7 +56,7 @@ router.get('/confirm/:confirmationCode', async (req, res) => {
         })      
       } else {
         await user.update({
-          status: 'Active'
+          confirmation_status: 'Active'
         })
         res.status(200).send({
           status: 'Success',
