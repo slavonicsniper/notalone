@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken")
 const {sendConfirmationEmail, sendResetPasswordEmail} = require('../services/sendmail');
 const useractivity = require('../models/useractivity');
 require("dotenv").config();
+const { Op } = require('@sequelize/core')
 
 router.post('/register', async (req, res, next) => {
   try {
@@ -170,20 +171,57 @@ router.get('/', checkAuthentication, async (req, res, next) => {
   }
   */
   try {
+    const user = await User.findOne({
+      where: {
+        uuid: req.user.uuid
+      },
+    })
+    const userActivities = await user.getActivities({
+      joinTableAttributes: [],
+      attributes: ['uuid']
+    })
+    const userAvailabilities = await user.getAvailabilities({
+      attributes: ['day', 'start_time', 'end_time']
+    })      
+    const whereForAvailabilities = userAvailabilities.map(availability => {
+      return {
+        day: availability.day,
+        start_time: {
+          [Op.gte]: availability.start_time
+        },
+        end_time: {
+          [Op.lte]: availability.end_time
+        }
+      }
+    })
+    const whereForActivities = userActivities.map(activity => activity.uuid)
     const users = await User.findAll({
       include: [{
         model: UserActivity,
         limit: 3,
+        attributes: ['activity_id'],
         include: {
           model: Activity,
           attributes: ['name'],
+          where: {
+            uuid: whereForActivities
+          },
         }
       },{
         model: Availability,
         limit: 3,
-        attributes: ['day', 'start_time', 'end_time']
-      }]
+        attributes: ['day', 'start_time', 'end_time'],
+        where: {
+          [Op.or]: whereForAvailabilities
+        }
+      }],
+      where: {
+        uuid: {
+          [Op.ne]: req.user.uuid
+        }
+      },
     })
+    const filteredUsers = users.filter(user => user.UserActivities.length > 0 && user.Availabilities.length > 0)
     if(!users) {
       res.status(404).send({
         status: 'Failed',
@@ -193,7 +231,7 @@ router.get('/', checkAuthentication, async (req, res, next) => {
       res.status(200).send({
         status: 'Success',
         message: 'Users found',
-        data: users
+        data: filteredUsers
       })
     }
   } catch(err) {
