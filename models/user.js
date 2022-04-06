@@ -14,16 +14,20 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       User.hasMany(models.Availability, {
         foreignKey: 'user_id', 
-        as: 'availabilities'
+        //as: 'availabilities'
+      })
+      User.hasMany(models.UserActivity, {
+        foreignKey: 'user_id', 
+        //as: 'availabilities'
       })
       User.belongsToMany(models.Activity, { 
         through: models.UserActivity,
-        as: 'activities',
+        //as: 'activities',
         foreignKey: 'user_id'
       })
       User.belongsToMany(models.Group, { 
         through: models.UserGroup,
-        as: 'groups',
+        //as: 'groups',
         foreignKey: 'user_id'
       })
     }

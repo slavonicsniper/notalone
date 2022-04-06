@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Availability.belongsTo(models.User, {
         foreignKey: 'user_id', 
-        as: 'user'
+        //as: 'user'
       })
     }
 

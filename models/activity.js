@@ -20,6 +20,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'activity_id', 
         as: 'groups'
       })
+      Activity.hasMany(models.UserActivity, {
+        foreignKey: 'activity_id',
+        //as: 'availabilities'
+      })
     }
 
     toJSON() {
