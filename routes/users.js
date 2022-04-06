@@ -1,10 +1,11 @@
 var express = require('express');
 var router = express.Router();
-const {User} = require('../models')
+const {User, Activity, Availability, UserActivity} = require('../models')
 const passport = require('passport');
 const { checkAuthentication } = require('../services/auth');
 const jwt = require("jsonwebtoken")
-const {sendConfirmationEmail, sendResetPasswordEmail} = require('../services/sendmail')
+const {sendConfirmationEmail, sendResetPasswordEmail} = require('../services/sendmail');
+const useractivity = require('../models/useractivity');
 require("dotenv").config();
 
 router.post('/register', async (req, res, next) => {
@@ -159,8 +160,30 @@ router.get('/logout', checkAuthentication, (req, res, next) => {
 
 
 router.get('/', checkAuthentication, async (req, res, next) => {
+  /* we will need something like this for more queries with filters
+  const makeSequelizeOptions = (query) => {
+    const options = {}
+    query.joinModel ? options.include = {model: req.query.joinModel} : null
+    query.joinModelLimit ? options.include.limit = req.query.joinModelLimit : null
+    query.model ? options.include.include = {model: req.query.model} : null
+    return options
+  }
+  */
   try {
-    const users = await User.findAll()
+    const users = await User.findAll({
+      include: [{
+        model: UserActivity,
+        limit: 3,
+        include: {
+          model: Activity,
+          attributes: ['name'],
+        }
+      },{
+        model: Availability,
+        limit: 3,
+        attributes: ['day', 'start_time', 'end_time']
+      }]
+    })
     if(!users) {
       res.status(404).send({
         status: 'Failed',
