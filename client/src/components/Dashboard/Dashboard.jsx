@@ -168,9 +168,7 @@ export default function Dashboard() {
                             <div>
                                 <Card.Header>Activities</Card.Header>
                                 <Card.Text>
-                                    {filterCheck ? 
-                                    user.UserActivities.map(activity => activity.Activity.name).join(', ') 
-                                    : user.Activities.map(activity => activity.name).join(', ')}
+                                    {user.UserActivities.map(activity => activity.Activity.name).join(', ')}
                                 </Card.Text>
                             </div>
                             <div>
