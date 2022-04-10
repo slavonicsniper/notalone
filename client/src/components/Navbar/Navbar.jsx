@@ -22,7 +22,7 @@ function Navigation(props) {
           <Navbar.Toggle aria-controls="responsive-navbar-nav" />
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="me-auto">
-              <Nav.Link href="#features">Activities</Nav.Link>
+              <Nav.Link href="/activities">Activities</Nav.Link>
               <Nav.Link href="#pricing">Availabilities</Nav.Link>
             </Nav>
             <Nav>

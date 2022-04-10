@@ -8,6 +8,7 @@ import Confirmation from './components/Confirmation/Confirmation';
 import Dashboard from './components/Dashboard/Dashboard';
 import Profile from './components/Profile/Profile';
 import Logout from './components/Logout/Logout'
+import Activities from './components/Activities/Activities';
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -43,6 +44,7 @@ function App() {
         <Route path="/forgotPassword" element={<ForgotPassword/>}/>
         <Route path="/confirm/:confirmationCode" element={<Confirmation/>}/>
         <Route path="/profile" element={<Profile/>}/>
+        <Route path="/activities" element={<Activities/>}/>
       </Routes>
     </Router>  
   );
