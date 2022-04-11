@@ -107,7 +107,7 @@ router.delete('/', checkAuthentication,  async (req, res, next) => {
   try {
     const availability = await Availability.findAll({
       where: {
-        uuid: req.body.deleteActivities
+        uuid: req.body.deleteAvailabilities
       }
     })
     if(!availability) {
@@ -118,7 +118,7 @@ router.delete('/', checkAuthentication,  async (req, res, next) => {
     } else {
       await Availability.destroy({
         where: {
-          uuid: req.body.deleteActivities
+          uuid: req.body.deleteAvailabilities
         }
       })
       res.status(200).send({

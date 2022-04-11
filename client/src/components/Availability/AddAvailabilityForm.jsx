@@ -3,8 +3,7 @@ import {Stack, Form, Button, Alert} from 'react-bootstrap'
 import Availability from '../../services/Availability';
 import AddAvailabilityList from './AddAvailabilityList';
 
-export default function AddAvailabilityForm(props) {
-    const [fetchedAvailabilities, setFetchedActivities] = useState([])
+export default function AddAvailabilityForm() {
     const [defaultTimeArr, setDedaultTimeArr] = useState([])
     const [startTimeArr, setStartTimeArr] = useState([])
     const [endTimeArr, setEndTimeArr] = useState([])
@@ -12,9 +11,11 @@ export default function AddAvailabilityForm(props) {
     const [startTime, setStartTime] = useState('00:00')
     const [endTime, setEndTime] = useState('00:30')
     const [day, setDay] = useState('Monday')
-    const [availabilities, setAvailabilities] = useState([])
     const [newAvailabilities, setNewAvailabilities] = useState([])
     const [message, setMessage] = useState(null)
+    const [fetchedUserAvailabilities, setFetchedUserAvailabilities] = useState([])
+    const [fetchedUserAvailabilitiesToDisplay, setFetchedUserAvailabilitiesToDisplay] = useState([])
+    const [availabilitiesToDelete, setAvailabilitiesToDelete] = useState([])
 
     const renderAvailableTimeArray = () => {
         let arr = []
@@ -68,18 +69,38 @@ export default function AddAvailabilityForm(props) {
         setNewAvailabilities(newAvailabilities.filter(availability => `${availability.day}-${availability.start_time}-${availability.end_time}` !== clickedAvailability))
     }
 
-    const getFetchedActivities = async () => {
+    const deleteAvailability = (clickedAvailability) => {
+        setAvailabilitiesToDelete(prev => [...prev, clickedAvailability])
+        setFetchedUserAvailabilitiesToDisplay(fetchedUserAvailabilitiesToDisplay.filter(availability => availability.uuid !== clickedAvailability))
+    }
+
+    const getFetchedUserAvailabilities = async () => {
         try {
-            if(fetchedAvailabilities.length === 0) {
-                const response = await Availability.fetchActivities()
+            if(fetchedUserAvailabilities.length === 0) {
+                const response = await Availability.fetchUserAvailabilities()
                 if(response.status === 'Success') {
-                    setFetchedActivities(response.data)
+                    setFetchedUserAvailabilities(response.data)
+                    setFetchedUserAvailabilitiesToDisplay(response.data)
                 }
             }
         } catch(err) {
             console.log(err)
         }
     }
+
+    const handleReset = () => {
+        setFetchedUserAvailabilitiesToDisplay(fetchedUserAvailabilities)
+        setAvailabilitiesToDelete([])
+        setNewAvailabilities([])
+        setDay('Monday')
+        setStartTime('00:00')
+        setEndTime('00:30')
+        setMessage('')
+    }
+
+    useEffect(() => {
+        getFetchedUserAvailabilities()
+    }, [])
 
     const saveAvailabilities = async () => {
         setMessage(null)
@@ -89,6 +110,8 @@ export default function AddAvailabilityForm(props) {
             if(response.status === "Success") {
                 setMessage(response)
                 setNewAvailabilities([])
+                setFetchedUserAvailabilities([])
+                getFetchedUserAvailabilities()
             }
         } catch(err) {
             setMessage({status: "Failed", message: response.error})
@@ -96,13 +119,24 @@ export default function AddAvailabilityForm(props) {
         }
     }
 
-    const handleReset = () => {
-        setNewAvailabilities([])
-        setDay('')
-        setStartTime('')
-        setEndTime('')
-        setMessage('')
+    const deleteAvailabilities = async () => {
+        console.log(availabilitiesToDelete)
+        setMessage(null)
+        let response = {}
+        try {
+            response = await Availability.deleteAvailabilities({deleteAvailabilities: availabilitiesToDelete})
+            if(response.status === "Success") {
+                setMessage(response)
+                setAvailabilitiesToDelete([])
+                setFetchedUserAvailabilities(fetchedUserAvailabilitiesToDisplay)
+            }
+        } catch(err) {
+            setMessage({status: "Failed", message: response.error})
+            console.log(err)
+        }
     }
+
+
 
     return (
         <>
@@ -135,7 +169,8 @@ export default function AddAvailabilityForm(props) {
             <Button variant="outline-danger" onClick={handleReset}>Reset</Button>            
         </Stack>
         <h6>Existing availabilities</h6>
-        {availabilities.map(availability => <AddAvailabilityList key={`${availability.day}-${availability.start_time}-${availability.end_time}`} availability={availability} removeAvailability={removeAvailability}/>)}
+        {fetchedUserAvailabilitiesToDisplay.map(availability => <AddAvailabilityList key={availability.uuid} availability={availability} deleteAvailability={deleteAvailability}/>)}
+        {availabilitiesToDelete.length > 0 && <Button variant="primary" onClick={deleteAvailabilities} className="col-md-3 mx-auto">Delete</Button>}
         <h6>New availabilities</h6>
         {newAvailabilities.map(availability => <AddAvailabilityList key={`${availability.day}-${availability.start_time}-${availability.end_time}`} availability={availability} removeAvailability={removeAvailability}/>)}
         {newAvailabilities.length > 0 && <Button variant="primary" onClick={saveAvailabilities} className="col-md-3 mx-auto">Save</Button>}

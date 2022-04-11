@@ -2,8 +2,17 @@ import React from 'react'
 import {Stack, CloseButton} from 'react-bootstrap'
 
 export default function AddAvailabilityList(props) {
-    const {availability, removeAvailability} = props
+    const {availability, deleteAvailability, removeAvailability} = props
     const {day, start_time, end_time} = availability
+
+    const handleDelete = (e) => {
+        if(deleteAvailability) {
+            deleteAvailability(e.target.id)
+        } else {
+            console.log('removeActivity called')
+            removeAvailability(e.target.id)
+        }
+    }
 
     return (
         <Stack direction="horizontal" className="bg-light rounded-pill p-2" gap={3}>
@@ -11,7 +20,7 @@ export default function AddAvailabilityList(props) {
             <div className="vr" />
             <div>{`${start_time} - ${end_time}`}</div>
             <div className="ms-auto">
-                <CloseButton id={`${day}-${start_time}-${end_time}`} onClick={(e) => removeAvailability(e.target.id)}/>
+                <CloseButton id={deleteAvailability ? availability.uuid : `${day}-${start_time}-${end_time}`} onClick={handleDelete}/>
             </div>
         </Stack>
     )
