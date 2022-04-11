@@ -1,36 +1,35 @@
 import React, {useState, useEffect} from 'react'
 import AuthService from '../../services/AuthService';
+import {Alert, Container} from 'react-bootstrap'
 import { useParams } from "react-router-dom";
-import './Confirmation.css'
 
 function Confirmation() {
-
     let params = useParams();
-    const [message, setMessage] = useState("");
-    const [color, setColor] = useState("");
-    console.log(params.confirmationCode);
+    const initialResponse = { message: '', alertVariant: '' };
+    const [response, setResponse] = useState(initialResponse);
 
-    useEffect(() => {
-        setMessage("");
-
-        AuthService.verifyUser(params.confirmationCode).then((response) => {
-        if(response.hasOwnProperty('message')){
-            setMessage(response.message);
-            setColor('green');
-        } else {
-            setMessage(response.error);
-            setColor('red');
-        }
-        });
+    useEffect( async e => {
+        try {
+            const res = await AuthService.verifyUser(params.confirmationCode) 
+            if(res.status === 'Success'){
+              setResponse(({message: res.message, alertVariant: 'success'}));
+            } else{
+              setResponse(({message: res.message, alertVariant: 'danger'}));
+            }
+          } catch(error) {
+            console.log(error)
+          }
     }, []);
 
     return (
-        <div className='main-login'>
-            {message.length > 0 &&
-            <div className={'alert ' + color}>
-              {message}
-            </div>
-          }
+        <div>
+            <Container className="d-flex vh-100 justify-content-center align-items-center">
+                {response.message && 
+                <Alert variant={response.alertVariant}>
+                    {response.message}
+                </Alert>
+                }
+            </Container>
         </div>
     )
 }
