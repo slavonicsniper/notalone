@@ -100,7 +100,7 @@ export default function AddAvailabilityForm() {
 
     useEffect(() => {
         getFetchedUserAvailabilities()
-    }, [])
+    }, [fetchedUserAvailabilities])
 
     const saveAvailabilities = async () => {
         setMessage(null)
@@ -111,7 +111,6 @@ export default function AddAvailabilityForm() {
                 setMessage(response)
                 setNewAvailabilities([])
                 setFetchedUserAvailabilities([])
-                getFetchedUserAvailabilities()
             }
         } catch(err) {
             setMessage({status: "Failed", message: response.error})

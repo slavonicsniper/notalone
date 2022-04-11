@@ -54,11 +54,12 @@ export default function AddActivityForm() {
         setActivityNew('')
         setActivityTypeExist('')
         setActivityTypeNew('')
+        setMessage('')
     }
 
     useEffect(() => {
         getFetchedUserActivities()
-    }, [])
+    }, [fetchedUserActivities])
 
     const handleChangeActivity = e => {
         const foundActivity = fetchedActivities.filter(activity => activity.name === e.target.value)
@@ -111,7 +112,6 @@ export default function AddActivityForm() {
                 setExistingActivities([])
                 setNewActivities([])
                 setFetchedUserActivities([])
-                getFetchedUserActivities()
             }
         } catch(err) {
             setMessage({status: "Failed", message: response.error})
