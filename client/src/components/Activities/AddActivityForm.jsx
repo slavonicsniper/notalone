@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {Stack, Form, Button, Alert} from 'react-bootstrap'
 import Activity from '../../services/Activity';
 import AddActivityList from './AddActivityList';
@@ -13,6 +13,9 @@ export default function AddActivityForm() {
     const [existingActivities, setExistingActivities] = useState([])
     const [newActivities, setNewActivities] = useState([])
     const [message, setMessage] = useState(null)
+    const [fetchedUserActivities, setFetchedUserActivities] = useState([])
+    const [fetchedUserActivitiesToDisplay, setFetchedUserActivitiesToDisplay] = useState([])
+    const [activitiesToDelete, setActivitiesToDelete] = useState([])
 
     const getFetchedActivities = async () => {
         try {
@@ -26,6 +29,36 @@ export default function AddActivityForm() {
             console.log(err)
         }
     }
+
+    const getFetchedUserActivities = async () => {
+        try {
+            if(fetchedUserActivities.length === 0) {
+                const response = await Activity.fetchUserActivities()
+                if(response.status === 'Success') {
+                    setFetchedUserActivities(response.data)
+                    setFetchedUserActivitiesToDisplay(response.data)
+                }
+            }
+        } catch(err) {
+            console.log(err)
+        }
+    }
+
+    const handleReset = () => {
+        setFetchedUserActivitiesToDisplay(fetchedUserActivities)
+        setActivitiesToDelete([])
+        setExistingActivities([])
+        setNewActivities([])
+        setActivityTypeDisable(false)
+        setActivityExist('')
+        setActivityNew('')
+        setActivityTypeExist('')
+        setActivityTypeNew('')
+    }
+
+    useEffect(() => {
+        getFetchedUserActivities()
+    }, [])
 
     const handleChangeActivity = e => {
         const foundActivity = fetchedActivities.filter(activity => activity.name === e.target.value)
@@ -63,6 +96,11 @@ export default function AddActivityForm() {
         setNewActivities(newActivities.filter(activity => activity.name !== clickedActivity))
     }
 
+    const deleteActivity = (clickedActivity) => {
+        setActivitiesToDelete(prev => [...prev, clickedActivity])
+        setFetchedUserActivitiesToDisplay(fetchedUserActivitiesToDisplay.filter(activity => activity.uuid !== clickedActivity))
+    }
+
     const saveActivities = async () => {
         setMessage(null)
         let response = {}
@@ -72,6 +110,8 @@ export default function AddActivityForm() {
                 setMessage(response)
                 setExistingActivities([])
                 setNewActivities([])
+                setFetchedUserActivities([])
+                getFetchedUserActivities()
             }
         } catch(err) {
             setMessage({status: "Failed", message: response.error})
@@ -79,15 +119,23 @@ export default function AddActivityForm() {
         }
     }
 
-    const handleReset = () => {
-        setExistingActivities([])
-        setNewActivities([])
-        setActivityTypeDisable(false)
-        setActivityExist('')
-        setActivityNew('')
-        setActivityTypeExist('')
-        setActivityTypeNew('')
+    const deleteActivities = async () => {
+        setMessage(null)
+        let response = {}
+        try {
+            response = await Activity.deleteActivities({deleteActivities: activitiesToDelete})
+            if(response.status === "Success") {
+                setMessage(response)
+                setActivitiesToDelete([])
+                setFetchedUserActivities(fetchedUserActivitiesToDisplay)
+            }
+        } catch(err) {
+            setMessage({status: "Failed", message: response.error})
+            console.log(err)
+        }
     }
+
+
 
     return (
         <>
@@ -107,6 +155,8 @@ export default function AddActivityForm() {
             <Button variant="outline-danger" onClick={handleReset}>Reset</Button>            
         </Stack>
         <h6>Existing activities</h6>
+        {fetchedUserActivitiesToDisplay.map(activity => <AddActivityList key={activity.name} activity={activity} deleteActivity={deleteActivity}/>)}
+        {activitiesToDelete.length > 0 && <Button variant="primary" onClick={deleteActivities} className="col-md-3 mx-auto">Delete</Button>}
         <h6>New activities</h6>
         {existingActivities.map(activity => <AddActivityList key={activity.name} activity={activity} removeActivity={removeActivity}/>)}
         {newActivities.map(activity => <AddActivityList key={activity.name} activity={activity} removeActivity={removeActivity}/>)}
