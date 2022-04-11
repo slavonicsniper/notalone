@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from 'react'
+import React, {useState} from 'react'
 import {Stack, Form, Button, Alert} from 'react-bootstrap'
 import Activity from '../../services/Activity';
 import AddActivityList from './AddActivityList';
 
-export default function AddActivityForm(props) {
+export default function AddActivityForm() {
     const [fetchedActivities, setFetchedActivities] = useState([])
     const [activityExist, setActivityExist] = useState('')
     const [activityTypeExist, setActivityTypeExist] = useState('')
@@ -12,7 +12,6 @@ export default function AddActivityForm(props) {
     const [activityTypeDisable, setActivityTypeDisable] = useState(false)
     const [existingActivities, setExistingActivities] = useState([])
     const [newActivities, setNewActivities] = useState([])
-    const [data, setData] = useState(null)
     const [message, setMessage] = useState(null)
 
     const getFetchedActivities = async () => {
@@ -64,18 +63,15 @@ export default function AddActivityForm(props) {
         setNewActivities(newActivities.filter(activity => activity.name !== clickedActivity))
     }
 
-    const handleSave = () => {
-        setData({existingActivities, newActivities})
-    }
-
-    const saveActivities = async (data) => {
+    const saveActivities = async () => {
         setMessage(null)
         let response = {}
         try {
-            response = await Activity.saveActivities(data)
+            response = await Activity.saveActivities({existingActivities, newActivities})
             if(response.status === "Success") {
                 setMessage(response)
-                setData(null)
+                setExistingActivities([])
+                setNewActivities([])
             }
         } catch(err) {
             setMessage({status: "Failed", message: response.error})
@@ -92,12 +88,6 @@ export default function AddActivityForm(props) {
         setActivityTypeExist('')
         setActivityTypeNew('')
     }
-
-    useEffect(() => {
-        if(data) {
-            saveActivities(data)
-        }
-    }, [data])
 
     return (
         <>
@@ -117,10 +107,10 @@ export default function AddActivityForm(props) {
             <Button variant="outline-danger" onClick={handleReset}>Reset</Button>            
         </Stack>
         <h6>Existing activities</h6>
-        {existingActivities.map(activity => <AddActivityList key={activity.name} activity={activity} removeActivity={removeActivity}/>)}
         <h6>New activities</h6>
+        {existingActivities.map(activity => <AddActivityList key={activity.name} activity={activity} removeActivity={removeActivity}/>)}
         {newActivities.map(activity => <AddActivityList key={activity.name} activity={activity} removeActivity={removeActivity}/>)}
-        {existingActivities.length > 0 ? <Button variant="primary" onClick={handleSave} className="col-md-3 mx-auto">Save</Button> : newActivities.length > 0 ? <Button variant="primary" onClick={handleSave} className="col-md-3 mx-auto">Save</Button> : null}
+        {existingActivities.length > 0 ? <Button variant="primary" onClick={saveActivities} className="col-md-3 mx-auto">Save</Button> : newActivities.length > 0 ? <Button variant="primary" onClick={saveActivities} className="col-md-3 mx-auto">Save</Button> : null}
         </>
     )
 }
