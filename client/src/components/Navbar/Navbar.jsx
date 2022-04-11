@@ -17,22 +17,32 @@ function Navigation(props) {
           />{' '}
         NOTAlone
         </Navbar.Brand>
-        {props.loggedIn &&
         <>
           <Navbar.Toggle aria-controls="responsive-navbar-nav" />
           <Navbar.Collapse id="responsive-navbar-nav">
-            <Nav className="me-auto">
-              <Nav.Link href="#features">Activities</Nav.Link>
-              <Nav.Link href="#pricing">Availabilities</Nav.Link>
-            </Nav>
-            <Nav>
-              <Nav.Link href="/profile">{props.userData.username}</Nav.Link>
-              <Nav.Link href="/logout">Log out</Nav.Link>
-            </Nav>
+            {props.loggedIn ?
+            <>
+              <Nav className="me-auto">
+                <Nav.Link href="/activities">Activities</Nav.Link>
+                <Nav.Link href="/availabilities">Availabilities</Nav.Link>
+              </Nav>
+              <Nav>
+                <Nav.Link href="/profile">{props.userData.username}</Nav.Link>
+                <Nav.Link href="/logout">Log out</Nav.Link>
+              </Nav>
+              </>
+              :
+              <>
+              <Nav className="me-auto">
+              </Nav>
+              <Nav>
+                <Nav.Link href="/login">Login</Nav.Link>
+                <Nav.Link href="/register">Register</Nav.Link>
+              </Nav>
+              </>
+            }
           </Navbar.Collapse>
-        </>
-        }
-                
+        </>       
       </Container>
     </Navbar>
   )

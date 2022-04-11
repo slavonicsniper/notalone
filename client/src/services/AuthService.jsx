@@ -43,9 +43,6 @@ const register = async (data) => {
     };
     try {
         const response = await fetch(process.env.REACT_APP_API_URL + '/users/register', requestOptions)
-        if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
-          }
         const json = await response.json();
         return json;
     } catch(err) {
@@ -60,21 +57,47 @@ const verifyUser = async (code) => {
             'Content-Type': 'application/json',
         },
     };
-    let resData = await fetch(process.env.REACT_APP_API_URL + '/users/confirm/' + code, requestOptions)
-        .then(response => {
-            if (response.status >= 200 && response.status <= 299) {
-                return response.json();
-            } else {
-                throw Error(response.statusText);
-            }
-        })
-        .then(async (result) => {
-                return result;
-            },
-            (error) => {
-                return error;
-        });
-    return resData;
+    try {
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/confirm' + code, requestOptions)
+        const json = await response.json();
+        return json;
+    } catch(err) {
+        console.error(err);
+    }
+};
+
+const initializePasswordReset = async (data) => {
+    const requestOptions = {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    };
+    try {
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/reset-password', requestOptions)
+        const json = await response.json();
+        return json;
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+const verifyPasswordReset = async (code, body) => {
+    const requestOptions = {
+        method: 'PUT',
+        headers: { 
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+    };
+    try {
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/reset-password' + code, requestOptions)
+        const json = await response.json();
+        return json;
+    } catch(err) {
+        console.error(err);
+    }
 };
 
 
@@ -82,5 +105,7 @@ export default {
   login,
   logout,
   register,
-  verifyUser
+  verifyUser,
+  initializePasswordReset,
+  verifyPasswordReset
 }
