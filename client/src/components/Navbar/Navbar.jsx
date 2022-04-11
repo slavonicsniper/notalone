@@ -23,7 +23,7 @@ function Navigation(props) {
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="me-auto">
               <Nav.Link href="/activities">Activities</Nav.Link>
-              <Nav.Link href="#pricing">Availabilities</Nav.Link>
+              <Nav.Link href="/availabilities">Availabilities</Nav.Link>
             </Nav>
             <Nav>
               <Nav.Link href="/profile">{props.userData.username}</Nav.Link>
