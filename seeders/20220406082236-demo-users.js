@@ -13,7 +13,6 @@ module.exports = {
       city: 'Munich',
       country: 'Germany',
       age: 20,
-      confirmation_status: 'Active',
       createdAt: new Date(),
       updatedAt: new Date()
     },{
@@ -25,7 +24,6 @@ module.exports = {
       city: 'London',
       country: 'UK',
       age: 21,
-      confirmation_status: 'Active',
       createdAt: new Date(),
       updatedAt: new Date()
     },{
@@ -37,7 +35,6 @@ module.exports = {
       city: 'Helsinki',
       country: 'Finland',
       age: 22,
-      confirmation_status: 'Active',
       createdAt: new Date(),
       updatedAt: new Date()
     },{
@@ -49,7 +46,6 @@ module.exports = {
       city: 'Alaska',
       country: 'United States',
       age: 23,
-      confirmation_status: 'Active',
       createdAt: new Date(),
       updatedAt: new Date()
     },{
@@ -61,7 +57,6 @@ module.exports = {
       city: 'Nitra',
       country: 'Slovakia',
       age: 24,
-      confirmation_status: 'Active',
       createdAt: new Date(),
       updatedAt: new Date()
     },{
@@ -73,7 +68,6 @@ module.exports = {
       city: 'Kiev',
       country: 'Ukraine',
       age: 25,
-      confirmation_status: 'Active',
       createdAt: new Date(),
       updatedAt: new Date()
     }], {});
