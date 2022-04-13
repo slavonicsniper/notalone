@@ -103,11 +103,11 @@ router.put('/:uuid', checkAuthentication,  async (req, res, next) => {
   }
 })
 
-router.delete('/:uuid', checkAuthentication,  async (req, res, next) => {
+router.delete('/', checkAuthentication,  async (req, res, next) => {
   try {
-    const availability = await Availability.findOne({
+    const availability = await Availability.findAll({
       where: {
-        uuid: req.params.uuid
+        uuid: req.body.deleteAvailabilities
       }
     })
     if(!availability) {
@@ -116,7 +116,11 @@ router.delete('/:uuid', checkAuthentication,  async (req, res, next) => {
         message: 'availability not found'
       })
     } else {
-      await availability.destroy()
+      await Availability.destroy({
+        where: {
+          uuid: req.body.deleteAvailabilities
+        }
+      })
       res.status(200).send({
         status: 'Success',
         message: 'availability deleted',

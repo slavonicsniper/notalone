@@ -239,13 +239,23 @@ router.get('/', checkAuthentication, async (req, res, next) => {
     } else {
       const users = await User.findAll({
         include: [{
-          model: Activity,
-          through: {
-            attributes: []
+          model: UserActivity,
+          limit: 3,
+          attributes: ['activity_id'],
+          include: {
+            model: Activity,
+            attributes: ['name'],
           }
         },{
           model: Availability,
-        }]
+          limit: 3,
+          attributes: ['day', 'start_time', 'end_time'],
+        }],
+        where: {
+          uuid: {
+            [Op.ne]: req.user.uuid
+          }
+        },
       })
       if(users) {
         res.status(200).send({

@@ -5,7 +5,6 @@ const { v4: uuidv4 } = require('uuid');
 module.exports = {
   async up (queryInterface, Sequelize) {
     await queryInterface.bulkInsert('users', [{
-      id: 1,
       uuid: uuidv4(),
       username: 'phoebe',
       email: 'phoebe@notalone.com',
@@ -17,7 +16,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 2,
       uuid: uuidv4(),
       username: 'John',
       email: 'john@notalone.com',
@@ -29,7 +27,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 3,
       uuid: uuidv4(),
       username: 'Alice',
       email: 'alice@notalone.com',
@@ -41,7 +38,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 4,
       uuid: uuidv4(),
       username: 'Joseph',
       email: 'Joseph@notalone.com',
@@ -53,7 +49,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 5,
       uuid: uuidv4(),
       username: 'Martin',
       email: 'marting@notalone.com',
@@ -65,7 +60,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 6,
       uuid: uuidv4(),
       username: 'Daniel',
       email: 'daniel@notalone.com',

@@ -31,6 +31,26 @@ router.get('/', checkAuthentication, async (req, res, next) => {
   }
 })
 
+router.get('/all', checkAuthentication, async (req, res, next) => {
+  try {
+    const activities = await Activity.findAll()
+    if(activities.length > 0) {
+      res.status(200).send({
+        status: 'Success',
+        message: 'Activities found',
+        data: activities
+      })
+    } else {
+      res.status(404).send({
+        status: 'Failed',
+        message: 'No activities found'
+      })
+    }
+  } catch(err) {
+    next(err)
+  }
+})
+
 router.post('/', checkAuthentication, async (req, res, next) => {
   try {
     const result = await sequelize.transaction(async (t) => {
@@ -40,7 +60,7 @@ router.post('/', checkAuthentication, async (req, res, next) => {
         }
       })
       const activities = {}
-      if(req.body.existingActivities) {
+      if(req.body.existingActivities.length > 0) {
         const existingActivities = await Activity.findAll({
           where: {
             [Op.or]: req.body.existingActivities
@@ -51,7 +71,7 @@ router.post('/', checkAuthentication, async (req, res, next) => {
         })
         activities.existingActivities = existingActivities
       }
-      if(req.body.newActivities) {
+      if(req.body.newActivities.length > 0) {
         const newActivities = await Activity.bulkCreate(req.body.newActivities, {
           transaction: t
         })

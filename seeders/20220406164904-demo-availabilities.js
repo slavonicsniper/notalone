@@ -4,7 +4,6 @@ const { v4: uuidv4 } = require('uuid');
 module.exports = {
   async up (queryInterface, Sequelize) {
     await queryInterface.bulkInsert('availabilities', [{
-      id: 1,
       uuid: uuidv4(),
       day: 'Monday',
       start_time: '01:00',
@@ -13,7 +12,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 2,
       uuid: uuidv4(),
       day: 'Tuesday',
       start_time: '03:00',
@@ -22,7 +20,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 3,
       uuid: uuidv4(),
       day: 'Wednesday',
       start_time: '05:00',
@@ -31,7 +28,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 4,
       uuid: uuidv4(),
       day: 'Thursday',
       start_time: '07:00',
@@ -40,7 +36,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 5,
       uuid: uuidv4(),
       day: 'Friday',
       start_time: '09:00',
@@ -49,7 +44,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 6,
       uuid: uuidv4(),
       day: 'Saturday',
       start_time: '11:00',
@@ -58,7 +52,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 7,
       uuid: uuidv4(),
       day: 'Sunday',
       start_time: '13:00',
@@ -67,7 +60,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 8,
       uuid: uuidv4(),
       day: 'Monday',
       start_time: '15:00',
@@ -76,7 +68,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 9,
       uuid: uuidv4(),
       day: 'Tuesday',
       start_time: '17:00',
@@ -85,7 +76,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 10,
       uuid: uuidv4(),
       day: 'Wednesday',
       start_time: '19:00',
@@ -94,7 +84,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 11,
       uuid: uuidv4(),
       day: 'Thursday',
       start_time: '21:00',
@@ -103,7 +92,6 @@ module.exports = {
       createdAt: new Date(),
       updatedAt: new Date()
     },{
-      id: 12,
       uuid: uuidv4(),
       day: 'Friday',
       start_time: '23:00',
