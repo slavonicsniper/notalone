@@ -58,7 +58,7 @@ const verifyUser = async (code) => {
         },
     };
     try {
-        const response = await fetch(process.env.REACT_APP_API_URL + '/users/confirm' + code, requestOptions)
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/confirm/' + code, requestOptions)
         const json = await response.json();
         return json;
     } catch(err) {
@@ -75,7 +75,7 @@ const initializePasswordReset = async (data) => {
         body: JSON.stringify(data),
     };
     try {
-        const response = await fetch(process.env.REACT_APP_API_URL + '/users/reset-password', requestOptions)
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/reset-password/', requestOptions)
         const json = await response.json();
         return json;
     } catch(err) {
@@ -92,7 +92,7 @@ const verifyPasswordReset = async (code, body) => {
         body: JSON.stringify(body),
     };
     try {
-        const response = await fetch(process.env.REACT_APP_API_URL + '/users/reset-password' + code, requestOptions)
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/reset-password/' + code, requestOptions)
         const json = await response.json();
         return json;
     } catch(err) {

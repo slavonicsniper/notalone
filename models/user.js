@@ -51,17 +51,6 @@ module.exports = (sequelize, DataTypes) => {
     city: DataTypes.STRING,
     country: DataTypes.STRING,
     age: DataTypes.INTEGER,
-    confirmation_status: {
-      type: DataTypes.STRING,
-      defaultValue: 'Pending',
-      validate: {
-        isIn: [['Pending', 'Active']]
-      }
-    },
-    confirmation_code: {
-      type: DataTypes.STRING,
-      unique: true
-    }
   }, {
     sequelize,
     modelName: 'User',

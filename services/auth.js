@@ -36,9 +36,6 @@ const login = async (data) => {
     if(!user) {
       throw createError(401, 'Incorrect email or password')
     } else {
-      if (user.confirmation_status != "Active") {
-        throw createError(401, "Pending Account. Please Verify Your Email!")
-      }
       if(await user.validPassword(password)) {
         return user
       } else {
