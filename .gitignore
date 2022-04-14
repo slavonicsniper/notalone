@@ -105,3 +105,8 @@ dist
 
 ./public
 package-lock.json
+
+# exclude unneeded sequelize migration files
+
+./migrations/*user-add-column*
+./migrations/*user-edit-column*

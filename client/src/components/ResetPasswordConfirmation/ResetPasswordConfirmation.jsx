@@ -57,11 +57,7 @@ function ResetPasswordConfirmation() {
             
         <div>
             <Container className="d-flex vh-100 justify-content-center align-items-center">
-                {response.message && 
-                <Alert variant={response.alertVariant}>
-                    {response.message}
-                </Alert>
-                }
+                
                 <Form noValidate onSubmit={handleSubmit}>
                     <h1>Enter new password</h1>
                     <Form.Group className="mb-3">
@@ -94,6 +90,11 @@ function ResetPasswordConfirmation() {
                         {errors.passwordConfirm}
                     </Form.Control.Feedback>
                     </Form.Group>
+                    {response.message && 
+                    <Alert variant={response.alertVariant}>
+                    {response.message}
+                    </Alert>
+                    }
                     <Button className="w-100" type="submit" disabled={isSubmitting}>
                         Reset password
                     </Button>

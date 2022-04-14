@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const {User, Activity, Availability, UserActivity} = require('../models')
+const {User, Activity, Availability, UserActivity, UserVerification} = require('../models')
 const passport = require('passport');
 const { checkAuthentication } = require('../services/auth');
 const jwt = require("jsonwebtoken")
@@ -11,18 +11,43 @@ const { Op } = require('@sequelize/core')
 
 router.post('/register', async (req, res, next) => {
   try {
-    const token = jwt.sign({email: req.body.email}, process.env.JWT_ACC_ACTIVATE, { expiresIn: '1d' })
-    req.body.confirmation_code = token
-    const {username} = req.body
+    const {username, email, password, city, country, age} = req.body
+    const user = await User.findOne({
+      where: {email}
+    })
+    if(!user) {
+      const token = jwt.sign({username, email, password, city, country, age}, process.env.JWT_ACC_ACTIVATE, { expiresIn: 60 })
+      if(token) {
+        await UserVerification.create({email_confirmation: token})
+        await sendConfirmationEmail(username, email, token)
+        res.status(201).send({
+          status: 'Success',
+          message: 'Please confirm your email to finish the registration.',
+        })
+      }
+    } else {
+      res.status(400).send({
+        status: 'Failed',
+        message: 'Email already used'
+      })
+    }
+  } catch(err) {
+    next(err)
+  }
+});
+
+router.get('/confirm/:confirmationCode', async (req, res, next) => {
+  try {
+    const verifiedToken = jwt.verify(req.params.confirmationCode, process.env.JWT_ACC_ACTIVATE)
+    const {username, email, password, city, country, age} = verifiedToken
     const [user, created] = await User.findOrCreate({
-      where: { username },
-      defaults: req.body
+      where: { email: verifiedToken.email },
+      defaults: {username, email, password, city, country, age}
     })
     if(created) {
-      await sendConfirmationEmail(user.username, user.email, user.confirmation_code)
       res.status(201).send({
         status: 'Success',
-        message: 'User registered, please confirm your email',
+        message: 'Email confirmed',
       })
     }
     else {
@@ -32,42 +57,36 @@ router.post('/register', async (req, res, next) => {
       })
     }
   } catch(err) {
-    next(err)
-  }
-});
-
-router.get('/confirm/:confirmationCode', async (req, res) => {
-  try {
-    const decodedToken = jwt.verify(req.params.confirmationCode, process.env.JWT_ACC_ACTIVATE)
-    if(!decodedToken) {
-      res.status(401).send({
-        status: 'Failed',
-        message: 'Wrong or expired token'
-      })      
-    } else {
-      const {email} = decodedToken
-      const user = await User.findOne({
+    if(err.name === "TokenExpiredError") {
+      const recievedToken = await UserVerification.findOne({
         where: {
-          email
+          email_confirmation: req.params.confirmationCode
         }
       })
-      if(!user) {
-        res.status(404).send({
-          status: 'Failed',
-          message: 'User not found'
-        })      
+      if(recievedToken) {
+        const decodedToken = jwt.decode(recievedToken.email_confirmation)
+        console.log(decodedToken)
+        if(decodedToken) {
+          const {username, email, password, city, country, age} = decodedToken
+          const newToken = jwt.sign({username, email, password, city, country, age}, process.env.JWT_ACC_ACTIVATE, { expiresIn: 60 })
+          if(newToken) {
+            await recievedToken.update({email_confirmation: newToken})
+            await sendConfirmationEmail(username, email, newToken)
+          }
+          res.status(401).send({
+            status: 'Failed',
+            message: 'Your token expired, a new confirmation email has been sent to you, please confirm it again'
+          })      
+        }
       } else {
-        await user.update({
-          confirmation_status: 'Active'
+        res.status(401).send({
+          status: 'Failed',
+          message: 'Unknown token, you have to register again.'
         })
-        res.status(200).send({
-          status: 'Success',
-          message: 'Email confirmed'
-        })
-      }
+      } 
+    } else {
+      next(err)
     }
-  } catch(err) {
-    next(err)
   }
 })
 
@@ -85,12 +104,9 @@ router.post('/reset-password', async (req, res, next) => {
         message: 'User not found'
       })    
     } else {
-      if (user.confirmation_status != "Active") {
-        throw createError(401, "Pending Account. Please Verify Your Email!")
-      }
-      const token = jwt.sign({email}, process.env.JWT_RESET_PASSWORD, { expiresIn: '1d' })
-      await user.update({confirmation_code: token})
-      await sendResetPasswordEmail(user.username, user.email, user.confirmation_code)
+      const token = jwt.sign({email}, process.env.JWT_RESET_PASSWORD, { expiresIn: 60 })
+      await UserVerification.create({password_reset: token})
+      await sendResetPasswordEmail(user.username, user.email, token)
       res.status(200).send({
         status: 'Success',
         message: 'Password reset link sent',
@@ -104,34 +120,68 @@ router.post('/reset-password', async (req, res, next) => {
 
 router.put('/reset-password/:confirmationCode', async (req, res, next) => {
   try {
-    const decodedToken = jwt.verify(req.params.confirmationCode, process.env.JWT_RESET_PASSWORD)
-    if(!decodedToken) {
-      res.status(401).send({
+    const verifiedToken = jwt.verify(req.params.confirmationCode, process.env.JWT_RESET_PASSWORD)
+    const {email} = verifiedToken
+    const user = await User.findOne({
+      where: {
+        email
+      }
+    })
+    if(!user) {
+      res.status(404).send({
         status: 'Failed',
-        message: 'Wrong or expired token'
+        message: 'User not found'
       })      
     } else {
-      const {email} = decodedToken
-      const user = await User.findOne({
-        where: {
-          email
-        }
+      await user.update(req.body)
+      res.status(200).send({
+        status: 'Success',
+        message: 'Password reset'
       })
-      if(!user) {
-        res.status(404).send({
-          status: 'Failed',
-          message: 'User not found'
-        })      
-      } else {
-        await user.update(req.body)
-        res.status(200).send({
-          status: 'Success',
-          message: 'Password reset'
-        })
-      }
     }
   } catch(err) {
-    next(err)
+    if(err.name === "TokenExpiredError") {
+      const recievedToken = await UserVerification.findOne({
+        where: {
+          password_reset: req.params.confirmationCode
+        }
+      })
+      if(recievedToken) {
+        const decodedToken = jwt.decode(recievedToken.password_reset)
+        if(decodedToken) {
+          console.log(decodedToken)
+          const {email} = decodedToken
+          const user = await User.findOne({
+            where: {
+              email
+            }
+          })
+          if(user) {
+            const newToken = jwt.sign({email}, process.env.JWT_RESET_PASSWORD, { expiresIn: '1d' })
+            if(newToken) {
+              await recievedToken.update({password_reset: newToken})
+              await sendResetPasswordEmail(user.username, user.email, newToken)
+            }
+            res.status(401).send({
+              status: 'Failed',
+              message: 'Your token expired, a new reset password email has been sent to you.'
+            })
+          } else {
+            res.status(404).send({
+              status: 'Failed',
+              message: 'User not found'
+            })      
+          }    
+        }
+      } else {
+        res.status(401).send({
+          status: 'Failed',
+          message: 'Unknown token, you have to reset the password again.'
+        })
+      }
+    } else {
+      next(err)
+    }
   }  
 })
 
