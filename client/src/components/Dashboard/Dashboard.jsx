@@ -1,8 +1,10 @@
 import React, {useEffect, useState} from 'react'
 import User from '../../services/User';
-import {Row, Col, Card, Container, ListGroup, Button, Modal, Placeholder, Stack, Form} from 'react-bootstrap'
+import {Row, Col, Card, Container, ListGroup, Button, Modal, Placeholder, Stack, Badge, Alert} from 'react-bootstrap'
+import SendMessage from './SendMessage';
+import userAvatar from './userAvatar.png'
 
-function MyVerticallyCenteredModal(props) {
+function UserCard(props) {
     return (
         <Modal
           show={props.show}
@@ -19,25 +21,27 @@ function MyVerticallyCenteredModal(props) {
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <Stack gap={4}>
-                    <div>
-                        <h6>City: {props.user.city}</h6>
-                        <h6>Country: {props.user.country}</h6>
-                        <h6>Age: {props.user.age}</h6>
-                    </div>
-                    <div>
-                        <h6>Activities</h6>
-                        <ListGroup horizontal={'md'}>
-                            {props.user.Activities.map(activity => <ListGroup.Item variant='info' key={activity.uuid}>{activity.name}</ListGroup.Item>)}
-                        </ListGroup>
-                    </div>
-                    <div>
-                        <h6>Availabilities</h6>
-                        <ListGroup horizontal={'md'}>
-                            {props.user.Availabilities.map(availability => <ListGroup.Item variant='info' key={availability.uuid}>{availability.day} {availability.start_time} - {availability.end_time}</ListGroup.Item>)}
-                        </ListGroup>
-                    </div>        
-                </Stack>
+                <ListGroup variant="flush">
+                    <ListGroup.Item variant="light">
+                        <strong>City:</strong> {props.user.city}
+                        <br/>
+                        <strong>Country:</strong> {props.user.country}
+                        <br/>
+                        <strong>Age:</strong> {props.user.age}
+                    </ListGroup.Item>
+                    <ListGroup.Item variant="light">
+                        <strong>Interested in: </strong>
+                        <Stack className="mt-2"direction="horizontal" gap={2}>                           
+                            {props.user.Activities.map(activity => <Badge pill bg="primary" key={activity.uuid}>{activity.name}</Badge>)}
+                        </Stack>
+                    </ListGroup.Item>
+                    <ListGroup.Item variant="light">
+                        <strong>Available: </strong>    
+                        <Stack className="mt-2"direction="horizontal" gap={2}>                        
+                            {props.user.Availabilities.map(availability => <Badge pill bg="success" key={availability.uuid}>{availability.day} {availability.start_time} - {availability.end_time}</Badge>)}
+                        </Stack>
+                    </ListGroup.Item>
+                </ListGroup>
             </Modal.Body>
             <Modal.Footer>
                 <Button onClick={props.onHide}>Close</Button>
@@ -99,125 +103,155 @@ function MyVerticallyCenteredModal(props) {
     );
   }
 
+
+
 export default function Dashboard() {
-    const [users, setUsers] = useState([])
+    const [users, setUsers] = useState(null)
+    const [allUsers, setAllUsers] = useState(null)
+    const [filteredUsers, setFilteredUsers] = useState(null)
     const [clickedUser, setClickedUser] = useState(null)
-    const [uuid, setUuid] = useState('')
-    const [modalShow, setModalShow] = useState(false);
-    const [queryParams, setQueryParams] = useState('?filter=true')
-    const [filterCheck, setFilterCheck] = useState(true)
+    const [userCardShow, setUserCardShow] = useState(false);
+    const [sendMessageShow, setSendMessageShow] = useState(false);
+    const [queryParams, setQueryParams] = useState('')
+    const [onlyMatchedSwitch, setOnlyMatchedSwitch] = useState(false)
+    const [message, setMessage] = useState('')
+    const [username, setUsername] = useState('')
+    const [userUuid, setUserUuid] = useState('')
 
     const fetchUsers = async () => {
         try {
-            const response = await User.getUsers(queryParams)
-            setUsers(response.data)
+            if(allUsers && filteredUsers) {
+                if(queryParams) {
+                        setUsers(filteredUsers)
+                } else {                    
+                        setUsers(allUsers)
+                }
+            } else {
+                const response = await User.getUsers(queryParams)
+                if(queryParams) {
+                        setFilteredUsers(response.data)
+                        setUsers(response.data)
+                } else {                    
+                        setAllUsers(response.data)
+                        setUsers(response.data)
+                }
+            }
         } catch(err) {
             console.log(err)
         }
     }
 
-    const fetchClickedUser = async (uuid) => {
-        try {
-            console.log(uuid)
-            const response = await User.getUser(uuid)
-            setClickedUser(response.data)
-        } catch(err) {
-            console.log(err)
-        }
+    const handleShowMore = (user) => {
+        setUserCardShow(true)
+        setClickedUser(user)
     }
-
-    const handleShowMore = (e) => {
-        if(e.target.id !== uuid) {
-            setUuid(e.target.id)
-            fetchClickedUser(e.target.id)
-        }
-        setModalShow(true)
-    }
-
-    const handleFilterSwitch = () => {
-        setFilterCheck(!filterCheck);
-        setUsers([])
-      };
 
     useEffect(() => {
-        if(!filterCheck) {
-            setQueryParams('')
+        if(onlyMatchedSwitch) {
+            setQueryParams('?filter=true') 
         } else {
-            setQueryParams('?filter=true')
+            setQueryParams('')
         }
-    }, [filterCheck])
+    }, [onlyMatchedSwitch])
 
     useEffect(() => {
         fetchUsers()
     }, [queryParams])
 
+    const handleSendMessage = (username, userUuid) => {
+        setSendMessageShow(true)
+        setMessage('')
+        setUsername(username)
+        setUserUuid(userUuid)
+    }
+
     return (
         <Container>
-            <div className="form-check form-switch">
-              <input className="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked={filterCheck} onChange={handleFilterSwitch}/>
+            <div className="form-check form-switch mb-3">
+              <input className="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked={onlyMatchedSwitch} onChange={() => setOnlyMatchedSwitch(!onlyMatchedSwitch)}/>
               <label className="form-check-label" htmlFor="flexSwitchCheckChecked">Only matched users</label>
             </div>                   
-            <Row xs={1} sm={2} md={3} lg={4} xl={5} xxl={6} className="g-4">
-                {users.length > 0 ?
-                users.map((user) => (
-                    <Col key={user.uuid}>
-                      <Card>
-                        <Card.Body>
-                            <Stack gap={3}>
-                            <Card.Title>{user.username}</Card.Title>
-                            <div>
-                                <Card.Header>Activities</Card.Header>
-                                <Card.Text>
-                                    {user.UserActivities.map(activity => activity.Activity.name).join(', ')}
-                                </Card.Text>
-                            </div>
-                            <div>
-                                <Card.Header>Availabilities</Card.Header>
-                                <Card.Text>
-                                    {user.Availabilities.map(availability => `${availability.day} ${availability.start_time} - ${availability.end_time}`).join(', ')}
-                                </Card.Text>
-                            </div>
-                            <div>
-                                <Button id={user.uuid} variant="primary" onClick={handleShowMore}>
-                                  Show more
-                                </Button>
-                            </div>
-                            </Stack>
-                            <MyVerticallyCenteredModal
-                              user={clickedUser}
-                              show={modalShow}
-                              onHide={() => setModalShow(false)}
-                            />                        
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                ))
+            {
+                users ?
+                    users.length > 0 ?
+                        <Row xs={1} sm={2} md={3} lg={4} xl={5} className="g-4">
+                            {users.map((user) => 
+                                <Col key={user.uuid}>
+                                  <Card>
+                                    <Card.Img variant="top" src={userAvatar} />
+                                    <Card.Body>
+                                        <Card.Title>{user.username}</Card.Title>
+                                        <Card.Text>
+                                            Here will go some description about the user.
+                                        </Card.Text>
+                                    </Card.Body>
+                                    <ListGroup className="list-group-flush">
+                                        <ListGroup.Item className="text-truncate">                        
+                                            <small className="text-muted">{user.Activities.map(activity => activity.name).join(', ')}</small>
+                                        </ListGroup.Item>
+                                        <ListGroup.Item className="text-truncate">
+                                        <small className="text-muted">{user.Availabilities.map(availability => `${availability.day} ${availability. start_time} - ${availability.end_time}`).join(', ')}</small>
+                                        </ListGroup.Item>
+                                    </ListGroup>
+                                    <Card.Body>
+                                        <Stack gap={1}>
+                                            <Button variant="outline-secondary" onClick={() => {handleShowMore(user)}} size="sm">
+                                              Show more
+                                            </Button>
+                                            <Button variant="primary" onClick={() => {handleSendMessage(user.username, user.uuid)}} size="sm">
+                                              Send message
+                                            </Button>
+                                        </Stack>
+                                    </Card.Body>
+                                  </Card>
+                                </Col>
+                            )}
+                        </Row>
+                    :      
+                    <Alert variant="info">
+                        No matched users found, please adjust your filter
+                    </Alert>
                 :
-                    <Col>
-                      <Card>
-                        <Card.Body>
-                            <Placeholder as={Card.Title} animation="glow">
-                                <Placeholder xs={6}/>
-                            </Placeholder>
-                            <Placeholder as={Card.Header} animation="glow">
-                                <Placeholder xs={8}/>
-                            </Placeholder>
-                            <Placeholder as={Card.Text} animation="glow">
-                                <Placeholder xs={12}/>
-                            </Placeholder>
-                            <Placeholder as={Card.Header} animation="glow">
-                                <Placeholder xs={8}/>
-                            </Placeholder>
-                            <Placeholder as={Card.Text} animation="glow">
-                                <Placeholder xs={12}/>
-                            </Placeholder>
-                            <Placeholder.Button xs={6} variant="primary"/>                        
-                        </Card.Body>
-                      </Card>                  
-                    </Col>
-                }
-                
-            </Row>
+                <Row xs={1} sm={2} md={3} lg={4} xl={5} className="g-4">
+                    {Array.from({ length: 5 }).map((_, idx) => (
+                        <Col key={idx}>
+                          <Card>
+                            <Card.Img variant="top" src={userAvatar} />
+                            <Card.Body>
+                                <Placeholder as={Card.Title} animation="glow">
+                                    <Placeholder xs={6}/>
+                                </Placeholder>
+                                <Placeholder as={Card.Text} animation="glow">
+                                    <Placeholder xs={7} /> <Placeholder xs={4} /> <Placeholder                          xs={4} />{' '}
+                                    <Placeholder xs={6} /> <Placeholder xs={8} />
+                                </Placeholder>
+                                <Placeholder as={Card.Text} animation="glow">
+                                    <Placeholder xs={12}/>
+                                </Placeholder>       
+                                <Placeholder as={Card.Text} animation="glow">
+                                    <Placeholder xs={12}/>
+                                </Placeholder>
+                                <Placeholder.Button xs={6} variant="outline-secondary"/>
+                                <Placeholder.Button xs={6} variant="primary"/>                        
+                            </Card.Body>
+                          </Card>                  
+                        </Col>
+                    ))}                
+                </Row>
+            }
+            <UserCard
+                user={clickedUser}
+                show={userCardShow}
+                onHide={() => setUserCardShow(false)}
+            />
+            <SendMessage
+                username={username}
+                userUuid={userUuid}
+                show={sendMessageShow}
+                onHide={() => setSendMessageShow(false)}
+                message={message}
+                setMessage={setMessage}
+            />            
         </Container>
     )
 }
