@@ -270,6 +270,7 @@ router.get('/', checkAuthentication, async (req, res, next) => {
             [Op.ne]: req.user.uuid
           }
         },
+        attributes: ['username', 'uuid', 'country', 'city', 'age']
       })
     } else {
       users = await User.findAll({
@@ -288,6 +289,7 @@ router.get('/', checkAuthentication, async (req, res, next) => {
             [Op.ne]: req.user.uuid
           }
         },
+        attributes: ['username', 'uuid', 'country', 'city', 'age']
       })
     }
     const filteredUsers = users.filter(user => user.Activities.length > 0 && user.Availabilities.length > 0)
