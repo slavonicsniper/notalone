@@ -16,7 +16,7 @@ router.post('/register', async (req, res, next) => {
       where: {email}
     })
     if(!user) {
-      const token = jwt.sign({username, email, password, city, country, age}, process.env.JWT_ACC_ACTIVATE, { expiresIn: 60 })
+      const token = jwt.sign({username, email, password, city, country, age}, process.env.JWT_ACC_ACTIVATE, { expiresIn: "1d" })
       if(token) {
         await UserVerification.create({email_confirmation: token})
         await sendConfirmationEmail(username, email, token)
@@ -68,7 +68,7 @@ router.get('/confirm/:confirmationCode', async (req, res, next) => {
         console.log(decodedToken)
         if(decodedToken) {
           const {username, email, password, city, country, age} = decodedToken
-          const newToken = jwt.sign({username, email, password, city, country, age}, process.env.JWT_ACC_ACTIVATE, { expiresIn: 60 })
+          const newToken = jwt.sign({username, email, password, city, country, age}, process.env.JWT_ACC_ACTIVATE, { expiresIn: "1d" })
           if(newToken) {
             await recievedToken.update({email_confirmation: newToken})
             await sendConfirmationEmail(username, email, newToken)
@@ -104,7 +104,7 @@ router.post('/reset-password', async (req, res, next) => {
         message: 'User not found'
       })    
     } else {
-      const token = jwt.sign({email}, process.env.JWT_RESET_PASSWORD, { expiresIn: 60 })
+      const token = jwt.sign({email}, process.env.JWT_RESET_PASSWORD, { expiresIn: "1d" })
       await UserVerification.create({password_reset: token})
       await sendResetPasswordEmail(user.username, user.email, token)
       res.status(200).send({
@@ -221,6 +221,7 @@ router.get('/', checkAuthentication, async (req, res, next) => {
   }
   */
   try {
+    let users
     if(req.query.filter) {
       const user = await User.findOne({
         where: {
@@ -247,22 +248,19 @@ router.get('/', checkAuthentication, async (req, res, next) => {
       })
       const whereForActivities = userActivities.map(activity => activity.uuid)
 
-      const users = await User.findAll({
+      users = await User.findAll({
         include: [{
-          model: UserActivity,
-          limit: 3,
-          attributes: ['activity_id'],
-          include: {
-            model: Activity,
-            attributes: ['name'],
-            where: {
-              uuid: whereForActivities
-            },
+          model: Activity,
+          attributes: ['name', 'uuid'],
+          where: {
+            uuid: whereForActivities
+          },
+          through: {
+            attributes: []
           }
         },{
           model: Availability,
-          limit: 3,
-          attributes: ['day', 'start_time', 'end_time'],
+          attributes: ['day', 'start_time', 'end_time', 'uuid'],
           where: {
             [Op.or]: whereForAvailabilities
           }
@@ -273,33 +271,17 @@ router.get('/', checkAuthentication, async (req, res, next) => {
           }
         },
       })
-      const filteredUsers = users.filter(user => user.UserActivities.length > 0 && user.Availabilities.length > 0)
-      if(filteredUsers) {
-        res.status(200).send({
-          status: 'Success',
-          message: 'Users found',
-          data: filteredUsers
-        })
-      } else {
-        res.status(404).send({
-          status: 'Failed',
-          message: 'No users found'
-        })
-      }
     } else {
-      const users = await User.findAll({
+      users = await User.findAll({
         include: [{
-          model: UserActivity,
-          limit: 3,
-          attributes: ['activity_id'],
-          include: {
             model: Activity,
-            attributes: ['name'],
-          }
-        },{
-          model: Availability,
-          limit: 3,
-          attributes: ['day', 'start_time', 'end_time'],
+            attributes: ['name', 'uuid'],
+            through: {
+              attributes: []
+            }
+          },{
+            model: Availability,
+            attributes: ['day', 'start_time', 'end_time', 'uuid'],
         }],
         where: {
           uuid: {
@@ -307,19 +289,20 @@ router.get('/', checkAuthentication, async (req, res, next) => {
           }
         },
       })
-      if(users) {
-        res.status(200).send({
-          status: 'Success',
-          message: 'Users found',
-          data: users
-        })
-      } else {
-        res.status(404).send({
-          status: 'Failed',
-          message: 'No users found'
-        })
-      }
     }
+    const filteredUsers = users.filter(user => user.Activities.length > 0 && user.Availabilities.length > 0)
+    if(filteredUsers) {
+      res.status(200).send({
+        status: 'Success',
+        message: 'Users found',
+        data: filteredUsers
+      })
+    } else {
+      res.status(404).send({
+        status: 'Failed',
+        message: 'No users found'
+      })
+    } 
 
   } catch(err) {
     next(err)

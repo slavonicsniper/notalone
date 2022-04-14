@@ -11,6 +11,7 @@ import Profile from './components/Profile/Profile';
 import Logout from './components/Logout/Logout'
 import Activities from './components/Activities/Activities';
 import Availabilities from './components/Availability/Availabilities';
+import Inbox from './components/Inbox/Inbox';
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -49,6 +50,7 @@ function App() {
         <Route path="/profile" element={<Profile/>}/>
         <Route path="/activities" element={<Activities/>}/>
         <Route path="/availabilities" element={<Availabilities/>}/>
+        <Route path="/inbox" element={<Inbox/>}/>
       </Routes>
     </Router>  
   );

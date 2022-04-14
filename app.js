@@ -17,6 +17,7 @@ const myStore = new SequelizeStore({
 var usersRouter = require('./routes/users');
 var availabilitiesRouter = require('./routes/availabilities');
 var activitiesRouter = require('./routes/activities');
+var messagesRouter = require('./routes/messages');
 
 var app = express();
 app.use(logger('dev'));
@@ -42,6 +43,7 @@ initPassport(passport)
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/availabilities', availabilitiesRouter);
 app.use('/api/v1/activities', activitiesRouter);
+app.use('/api/v1/messages', messagesRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

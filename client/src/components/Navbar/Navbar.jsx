@@ -23,6 +23,7 @@ function Navigation(props) {
             {props.loggedIn ?
             <>
               <Nav className="me-auto">
+                <Nav.Link href="/inbox">Inbox</Nav.Link>
                 <Nav.Link href="/activities">Activities</Nav.Link>
                 <Nav.Link href="/availabilities">Availabilities</Nav.Link>
               </Nav>
