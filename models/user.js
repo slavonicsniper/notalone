@@ -30,6 +30,14 @@ module.exports = (sequelize, DataTypes) => {
         //as: 'groups',
         foreignKey: 'user_id'
       })
+      User.hasMany(models.InboxMessage, {
+        foreignKey: 'from', 
+        as: 'sent'
+      })
+      User.hasMany(models.InboxMessage, {
+        foreignKey: 'to', 
+        as: 'received'
+      })
     }
 
     toJSON() {
