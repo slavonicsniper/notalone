@@ -45,6 +45,11 @@ app.use('/api/v1/availabilities', availabilitiesRouter);
 app.use('/api/v1/activities', activitiesRouter);
 app.use('/api/v1/messages', messagesRouter);
 
+// Handles any requests that don't match the ones above
+app.get('*', (req,res) =>{
+  res.sendFile(path.join(__dirname+'/client/build/index.html'));
+});
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
     next(createError(404));
