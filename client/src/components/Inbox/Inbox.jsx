@@ -89,9 +89,6 @@ export default function Inbox() {
                                     <div className="mb-3">
                                         {message.message}
                                     </div>
-                                    <Button variant="primary" onClick={() => handleAnswer(message.sender.username, message.sender.uuid, message.uuid)} size="sm">
-                                        Answer
-                                    </Button>
                                 </ListGroup.Item>
                             </ListGroup>
                         )}
