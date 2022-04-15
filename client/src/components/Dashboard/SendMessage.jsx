@@ -19,7 +19,7 @@ export default function SendMessage(props) {
                 setMessage(response)
             }           
             setMessageContent('')
-            props.fetchallMessages()
+            props.fetchallMessages && props.fetchallMessages()
         } catch(err) {
             console.log(err)
             setMessage({status: 'Failed', message: err})
