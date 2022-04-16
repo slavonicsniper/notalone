@@ -5,7 +5,7 @@ import {Container, Navbar, Nav} from 'react-bootstrap'
 function Navigation(props) {
 
   return (
-    <Navbar collapseOnSelect expand="md" bg="dark" variant="dark" className="mb-3">
+    <Navbar collapseOnSelect expand="md" bg="dark" variant="dark">
       <Container fluid="xxl">
         <Navbar.Brand href="/">
           <img

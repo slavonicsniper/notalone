@@ -99,16 +99,16 @@ router.get('/:uuid', checkAuthentication,  async (req, res, next) => {
         uuid: req.params.uuid
       }
     })
-    if(!activity) {
-      res.status(404).send({
-        status: 'Failed',
-        message: 'activity not found'
-      })
-    } else {
+    if(activity) {
       res.status(200).send({
         status: 'Success',
-        message: 'activity found',
+        message: 'Activity found',
         data: activity
+      })
+    } else {
+      res.status(404).send({
+        status: 'Failed',
+        message: 'Activity not found'
       })
     }
   } catch(err) {

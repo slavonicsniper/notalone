@@ -1,12 +1,12 @@
 import React ,{useState, useEffect} from 'react'
 import Message from '../../services/Message'
-import {ToastContainer, Toast, Tabs, Tab, Container, Button, Stack, ListGroup} from 'react-bootstrap'
+import {Tabs, Tab, Container, Button, Stack, ListGroup, Alert} from 'react-bootstrap'
 import SendMessage from '../Dashboard/SendMessage'
 
 export default function Inbox() {
     const [messages, setMessages] = useState(null)
     const [sendMessageShow, setSendMessageShow] = useState(false);
-    const [message, setMessage] = useState('')
+    const [message, setMessage] = useState(null)
     const [username, setUsername] = useState('')
     const [userUuid, setUserUuid] = useState('')
     const [messageUuid, setMessageUuid] = useState('')
@@ -17,6 +17,7 @@ export default function Inbox() {
             setMessages(response.data)
         } catch(err) {
             console.log(err)
+            setMessage({status: 'Failed', message: 'Something went wrong!'})
         }
     }
 
@@ -31,14 +32,19 @@ export default function Inbox() {
 
     const handleAnswer = (username, userUuid, messageUuid) => {
         setSendMessageShow(true)
-        setMessage('')
+        setMessage(null)
         setUsername(username)
         setUserUuid(userUuid)
         setMessageUuid(messageUuid)
     }
 
     return (
-        <Container className="mb-3">
+        <Container className="mb-3 mt-3">
+            {message &&
+                <Alert variant={message.status === "Failed" ? "danger" : "success"}>
+                    {message.message && message.message}
+                </Alert>
+            }
             <Tabs defaultActiveKey="received" className="mb-3">
                 <Tab eventKey="received" title="Received" >
                     <Stack gap={3}>
@@ -101,9 +107,9 @@ export default function Inbox() {
                 messageUuid={messageUuid}
                 show={sendMessageShow}
                 onHide={() => setSendMessageShow(false)}
-                message={message}
                 setMessage={setMessage}
                 fetchallMessages={fetchallMessages}
+                setSendMessageShow={setSendMessageShow}
             />
         </Container>
     )

@@ -4,33 +4,32 @@ import {Alert, Container} from 'react-bootstrap'
 import { useParams } from "react-router-dom";
 
 function Confirmation() {
-    let params = useParams();
-    const initialResponse = { message: '', alertVariant: '' };
-    const [response, setResponse] = useState(initialResponse);
+    const params = useParams();
+    const [message, setMessage] = useState(null)
 
-    useEffect( async e => {
-        try {
-            const res = await AuthService.verifyUser(params.confirmationCode) 
-            if(res.status === 'Success'){
-              setResponse(({message: res.message, alertVariant: 'success'}));
-            } else{
-              setResponse(({message: res.message, alertVariant: 'danger'}));
-            }
-          } catch(error) {
-            console.log(error)
-          }
+    const verifyUser = async () => {
+      try {
+        const response = await AuthService.verifyUser(params.confirmationCode) 
+        setMessage(response)
+      } catch(error) {
+        console.log(error)
+        setMessage({status: "Failed", message: "Something went wrong!"})
+      }
+    }
+
+    useEffect(() => {
+      verifyUser()
     }, []);
 
     return (
-        <div>
-            <Container className="d-flex vh-100 justify-content-center align-items-center">
-                {response.message && 
-                <Alert variant={response.alertVariant}>
-                    {response.message}
-                </Alert>
-                }
-            </Container>
-        </div>
+      <Container>
+      {message &&
+      <Alert variant={message.status === "Failed" ? "danger" : "success"}>
+        {message.message && message.message}
+      </Alert>
+      }
+      </Container>
+      
     )
 }
 

@@ -5,7 +5,7 @@ import Availability from '../../services/Availability';
 
 export default function Availabilities() {
     return (
-        <Container>
+        <Container className="mt-3">
             <Stack gap={3}>
                 <AddAvailabilityForm/>
             </Stack>

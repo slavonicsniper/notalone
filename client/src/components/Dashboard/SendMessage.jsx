@@ -4,7 +4,7 @@ import {Button, Modal, Placeholder, Form, Alert} from 'react-bootstrap'
 
 export default function SendMessage(props) {
     const [messageContent, setMessageContent] = useState('')
-    const {message, setMessage} = props
+    const {setMessage, setSendMessageShow} = props
 
     const handleSend = async () => {
         try {
@@ -13,16 +13,13 @@ export default function SendMessage(props) {
                 to: props.userUuid,
                 message: messageContent
             })
-            if(response.error) {
-                setMessage({status: 'Failed', message: 'Something went wrong!'})
-            } else {
-                setMessage(response)
-            }           
+            setMessage(response)
             setMessageContent('')
+            setSendMessageShow(false)
             props.fetchallMessages && props.fetchallMessages()
         } catch(err) {
             console.log(err)
-            setMessage({status: 'Failed', message: err})
+            setMessage({status: 'Failed', message: 'Something went wrong!'})
         }
     }
     return (
@@ -46,12 +43,7 @@ export default function SendMessage(props) {
                     <Form.Label>Message</Form.Label>
                     <Form.Control as="textarea" rows={3} onChange={(e) => setMessageContent(e.target.value)}/>
                   </Form.Group>
-                </Form>
-                {message &&
-                <Alert variant={message.status === "Failed" ? "danger" : "success"}>
-                    {message.message && message.message}
-                </Alert>
-                }                
+                </Form>           
             </Modal.Body>
             <Modal.Footer>
                 <Button onClick={handleSend} disabled={messageContent ? false : true}>Send</Button>

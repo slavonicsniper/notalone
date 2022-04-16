@@ -27,6 +27,7 @@ export default function AddActivityForm() {
             }
         } catch(err) {
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 
@@ -41,6 +42,7 @@ export default function AddActivityForm() {
             }
         } catch(err) {
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 
@@ -103,35 +105,31 @@ export default function AddActivityForm() {
     }
 
     const saveActivities = async () => {
-        setMessage(null)
-        let response = {}
         try {
-            response = await Activity.saveActivities({existingActivities, newActivities})
-            if(response.status === "Success") {
-                setMessage(response)
+            const response = await Activity.saveActivities({existingActivities, newActivities})
+            if(response.status === "Success") {                
                 setExistingActivities([])
                 setNewActivities([])
                 setFetchedUserActivities([])
             }
+            setMessage(response)
         } catch(err) {
-            setMessage({status: "Failed", message: response.error})
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 
     const deleteActivities = async () => {
-        setMessage(null)
-        let response = {}
         try {
-            response = await Activity.deleteActivities({deleteActivities: activitiesToDelete})
-            if(response.status === "Success") {
-                setMessage(response)
+            const response = await Activity.deleteActivities({deleteActivities: activitiesToDelete})
+            if(response.status === "Success") {                
                 setActivitiesToDelete([])
                 setFetchedUserActivities(fetchedUserActivitiesToDisplay)
             }
+            setMessage(response)
         } catch(err) {
-            setMessage({status: "Failed", message: response.error})
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 

@@ -7,7 +7,7 @@ export default function AddAvailabilityForm() {
     const [defaultTimeArr, setDedaultTimeArr] = useState([])
     const [startTimeArr, setStartTimeArr] = useState([])
     const [endTimeArr, setEndTimeArr] = useState([])
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturaday', 'Sunday']
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     const [startTime, setStartTime] = useState('00:00')
     const [endTime, setEndTime] = useState('00:30')
     const [day, setDay] = useState('Monday')
@@ -81,10 +81,11 @@ export default function AddAvailabilityForm() {
                 if(response.status === 'Success') {
                     setFetchedUserAvailabilities(response.data)
                     setFetchedUserAvailabilitiesToDisplay(response.data)
-                }
+                }                
             }
         } catch(err) {
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 
@@ -95,7 +96,7 @@ export default function AddAvailabilityForm() {
         setDay('Monday')
         setStartTime('00:00')
         setEndTime('00:30')
-        setMessage('')
+        setMessage(null)
     }
 
     useEffect(() => {
@@ -103,35 +104,30 @@ export default function AddAvailabilityForm() {
     }, [fetchedUserAvailabilities])
 
     const saveAvailabilities = async () => {
-        setMessage(null)
-        let response = {}
         try {
-            response = await Availability.saveAvailabilities(newAvailabilities)
+            const response = await Availability.saveAvailabilities(newAvailabilities)
             if(response.status === "Success") {
-                setMessage(response)
                 setNewAvailabilities([])
                 setFetchedUserAvailabilities([])
             }
+            setMessage(response)
         } catch(err) {
-            setMessage({status: "Failed", message: response.error})
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 
     const deleteAvailabilities = async () => {
-        console.log(availabilitiesToDelete)
-        setMessage(null)
-        let response = {}
         try {
-            response = await Availability.deleteAvailabilities({deleteAvailabilities: availabilitiesToDelete})
-            if(response.status === "Success") {
-                setMessage(response)
+            const response = await Availability.deleteAvailabilities({deleteAvailabilities: availabilitiesToDelete})
+            if(response.status === "Success") {                
                 setAvailabilitiesToDelete([])
                 setFetchedUserAvailabilities(fetchedUserAvailabilitiesToDisplay)
             }
-        } catch(err) {
-            setMessage({status: "Failed", message: response.error})
+            setMessage(response)
+        } catch(err) {            
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 

@@ -13,6 +13,10 @@ const send = async (data) => {
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
@@ -30,6 +34,10 @@ const get = async (data) => {
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
