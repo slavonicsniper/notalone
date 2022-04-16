@@ -8,7 +8,7 @@ const checkAuthentication = (req, res, next) => {
   } else {
       res.status(401).send({
         status: 'Failed',
-        message: 'You are not logged in!'
+        message: 'Not authenticated'
       })
   }
 }

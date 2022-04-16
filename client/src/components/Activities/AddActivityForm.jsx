@@ -3,7 +3,7 @@ import {Stack, Form, Button, Alert} from 'react-bootstrap'
 import Activity from '../../services/Activity';
 import AddActivityList from './AddActivityList';
 
-export default function AddActivityForm() {
+export default function AddActivityForm(props) {
     const [fetchedActivities, setFetchedActivities] = useState([])
     const [activityExist, setActivityExist] = useState('')
     const [activityTypeExist, setActivityTypeExist] = useState('')
@@ -21,6 +21,10 @@ export default function AddActivityForm() {
         try {
             if(fetchedActivities.length === 0) {
                 const response = await Activity.fetchActivities()
+                if(response.message === "Not authenticated") {
+                    props.handleLogin(false)
+                    window.localStorage.removeItem('data')
+                }
                 if(response.status === 'Success') {
                     setFetchedActivities(response.data)
                 }
@@ -35,6 +39,10 @@ export default function AddActivityForm() {
         try {
             if(fetchedUserActivities.length === 0) {
                 const response = await Activity.fetchUserActivities()
+                if(response.message === "Not authenticated") {
+                    props.handleLogin(false)
+                    window.localStorage.removeItem('data')
+                }
                 if(response.status === 'Success') {
                     setFetchedUserActivities(response.data)
                     setFetchedUserActivitiesToDisplay(response.data)
@@ -107,6 +115,10 @@ export default function AddActivityForm() {
     const saveActivities = async () => {
         try {
             const response = await Activity.saveActivities({existingActivities, newActivities})
+            if(response.message === "Not authenticated") {
+                props.handleLogin(false)
+                window.localStorage.removeItem('data')
+            }
             if(response.status === "Success") {                
                 setExistingActivities([])
                 setNewActivities([])
@@ -122,6 +134,10 @@ export default function AddActivityForm() {
     const deleteActivities = async () => {
         try {
             const response = await Activity.deleteActivities({deleteActivities: activitiesToDelete})
+            if(response.message === "Not authenticated") {
+                props.handleLogin(false)
+                window.localStorage.removeItem('data')
+            }
             if(response.status === "Success") {                
                 setActivitiesToDelete([])
                 setFetchedUserActivities(fetchedUserActivitiesToDisplay)

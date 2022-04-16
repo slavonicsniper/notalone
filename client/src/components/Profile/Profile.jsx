@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react'
 import User from '../../services/User';
 import {Form, Container, Button, Alert} from 'react-bootstrap'
 
-export default function Dashboard() {
+export default function Profile(props) {
     const [message, setMessage] = useState(null)
     const [username, setUsername] = useState('')
     const [email, setEmail] = useState('')
@@ -17,6 +17,10 @@ export default function Dashboard() {
     const fetchProfile = async () => {
         try {
             const response = await User.getProfile()
+            if(response.message === "Not authenticated") {
+                props.handleLogin(false)
+                window.localStorage.removeItem('data')
+            }
             if(response.status === 'Success'){
                 setUsername(response.data.username)
                 setEmail(response.data.email)
@@ -24,6 +28,7 @@ export default function Dashboard() {
                 setCity(response.data.city)
                 setAge(response.data.age)
             }
+            
         } catch(err) {
             console.log(err)
             setMessage({status: 'Failed', message: 'Something went wrong!'})
@@ -34,6 +39,10 @@ export default function Dashboard() {
         e.preventDefault();
         try {
             const response = await User.updateProfile({country, city, age})
+            if(response.message === "Not authenticated") {
+                props.handleLogin(false)
+                window.localStorage.removeItem('data')
+            }
             setMessage({status: response.status, message: response.message})
         } catch(err) {
             console.log(err)

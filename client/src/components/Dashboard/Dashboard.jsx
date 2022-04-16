@@ -105,7 +105,7 @@ function UserCard(props) {
 
 
 
-export default function Dashboard() {
+export default function Dashboard(props) {
     const [users, setUsers] = useState(null)
     const [allUsers, setAllUsers] = useState(null)
     const [filteredUsers, setFilteredUsers] = useState(null)
@@ -128,6 +128,10 @@ export default function Dashboard() {
                 }
             } else {
                 const response = await User.getUsers(queryParams)
+                if(response.message === "Not authenticated") {
+                    props.handleLogin(false)
+                    window.localStorage.removeItem('data')
+                }
                 if(queryParams) {
                         setFilteredUsers(response.data)
                         setUsers(response.data)
