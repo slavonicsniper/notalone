@@ -3,7 +3,7 @@ import {Stack, Form, Button, Alert} from 'react-bootstrap'
 import Availability from '../../services/Availability';
 import AddAvailabilityList from './AddAvailabilityList';
 
-export default function AddAvailabilityForm() {
+export default function AddAvailabilityForm(props) {
     const [defaultTimeArr, setDedaultTimeArr] = useState([])
     const [startTimeArr, setStartTimeArr] = useState([])
     const [endTimeArr, setEndTimeArr] = useState([])
@@ -78,6 +78,10 @@ export default function AddAvailabilityForm() {
         try {
             if(fetchedUserAvailabilities.length === 0) {
                 const response = await Availability.fetchUserAvailabilities()
+                if(response.message === "Not authenticated") {
+                    props.handleLogin(false)
+                    window.localStorage.removeItem('data')
+                }
                 if(response.status === 'Success') {
                     setFetchedUserAvailabilities(response.data)
                     setFetchedUserAvailabilitiesToDisplay(response.data)
@@ -106,6 +110,10 @@ export default function AddAvailabilityForm() {
     const saveAvailabilities = async () => {
         try {
             const response = await Availability.saveAvailabilities(newAvailabilities)
+            if(response.message === "Not authenticated") {
+                props.handleLogin(false)
+                window.localStorage.removeItem('data')
+            }
             if(response.status === "Success") {
                 setNewAvailabilities([])
                 setFetchedUserAvailabilities([])
@@ -120,6 +128,10 @@ export default function AddAvailabilityForm() {
     const deleteAvailabilities = async () => {
         try {
             const response = await Availability.deleteAvailabilities({deleteAvailabilities: availabilitiesToDelete})
+            if(response.message === "Not authenticated") {
+                props.handleLogin(false)
+                window.localStorage.removeItem('data')
+            }
             if(response.status === "Success") {                
                 setAvailabilitiesToDelete([])
                 setFetchedUserAvailabilities(fetchedUserAvailabilitiesToDisplay)

@@ -3,7 +3,7 @@ import Message from '../../services/Message'
 import {Tabs, Tab, Container, Button, Stack, ListGroup, Alert} from 'react-bootstrap'
 import SendMessage from '../Dashboard/SendMessage'
 
-export default function Inbox() {
+export default function Inbox(props) {
     const [messages, setMessages] = useState(null)
     const [sendMessageShow, setSendMessageShow] = useState(false);
     const [message, setMessage] = useState(null)
@@ -14,6 +14,10 @@ export default function Inbox() {
     const fetchallMessages = async () => {
         try {
             const response = await Message.get()
+            if(response.message === "Not authenticated") {
+                props.handleLogin(false)
+                window.localStorage.removeItem('data')
+            }
             setMessages(response.data)
         } catch(err) {
             console.log(err)

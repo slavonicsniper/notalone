@@ -40,17 +40,17 @@ function App() {
         <Navigation loggedIn={loggedIn}  userData={data}/>
       </header>
       <Routes>
-        <Route exact path="/" element={loggedIn ? <Dashboard/> : <Navigate replace to="/login" />}/>
+        <Route exact path="/" element={loggedIn ? <Dashboard handleLogin={handleLogin}/> : <Navigate replace to="/login" />}/>
         <Route path="/login" element={loggedIn ? <Navigate replace to="/" /> : <Login handleLogin={handleLogin} handleData={handleData}/>}/>
         <Route path="/logout" element={<Logout loggedIn={loggedIn} handleLogin={handleLogin}/>}/>
         <Route path="/register" element={<Register/>}/>
         <Route path="/reset-password" element={<ResetPassword/>}/>
         <Route path="/reset-password/:confirmationCode" element={<ResetPasswordConfirmation/>}/>
         <Route path="/confirm/:confirmationCode" element={<Confirmation/>}/>
-        <Route path="/profile" element={<Profile/>}/>
-        <Route path="/activities" element={<Activities/>}/>
-        <Route path="/availabilities" element={<Availabilities/>}/>
-        <Route path="/inbox" element={<Inbox/>}/>
+        <Route path="/profile" element={loggedIn ? <Profile handleLogin={handleLogin}/> : <Navigate replace to="/login" />}/>
+        <Route path="/activities" element={loggedIn ? <Activities handleLogin={handleLogin}/> : <Navigate replace to="/login" />}/>
+        <Route path="/availabilities" element={loggedIn ? <Availabilities handleLogin={handleLogin}/> : <Navigate replace to="/login" />}/>
+        <Route path="/inbox" element={loggedIn ? <Inbox handleLogin={handleLogin}/> : <Navigate replace to="/login" />}/>
       </Routes>
     </Router>  
   );
