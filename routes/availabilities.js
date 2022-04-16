@@ -14,7 +14,7 @@ router.get('/', checkAuthentication, async (req, res, next) => {
     if(availabilities.length > 0) {
       res.status(200).send({
         status: 'Success',
-        message: 'availabilities found',
+        message: 'Availabilities found',
         data: availabilities
       })
     } else {
@@ -61,16 +61,16 @@ router.get('/:uuid', checkAuthentication,  async (req, res, next) => {
         uuid: req.params.uuid
       }
     })
-    if(!availability) {
-      res.status(404).send({
-        status: 'Failed',
-        message: 'Availability not found'
-      })
-    } else {
+    if(availability) {
       res.status(200).send({
         status: 'Success',
         message: 'Availability found',
         data: availability
+      })
+    } else {
+      res.status(404).send({
+        status: 'Failed',
+        message: 'Availability not found'
       })
     }
   } catch(err) {
@@ -85,17 +85,17 @@ router.put('/:uuid', checkAuthentication,  async (req, res, next) => {
         uuid: req.params.uuid
       }
     })
-    if(!availability) {
-      res.status(404).send({
-        status: 'Failed',
-        message: 'Availability not found'
-      })
-    } else {
+    if(availability) {
       const updateAvailability = await availability.update(req.body)
       res.status(200).send({
         status: 'Success',
         message: 'Availability updated',
         data: updateAvailability
+      })
+    } else {
+      res.status(404).send({
+        status: 'Failed',
+        message: 'Availability not found'
       })
     }
   } catch(err) {
@@ -110,12 +110,7 @@ router.delete('/', checkAuthentication,  async (req, res, next) => {
         uuid: req.body.deleteAvailabilities
       }
     })
-    if(!availability) {
-      res.status(404).send({
-        status: 'Failed',
-        message: 'availability not found'
-      })
-    } else {
+    if(availability) {
       await Availability.destroy({
         where: {
           uuid: req.body.deleteAvailabilities
@@ -125,6 +120,12 @@ router.delete('/', checkAuthentication,  async (req, res, next) => {
         status: 'Success',
         message: 'availability deleted',
       })
+    } else {
+      res.status(404).send({
+        status: 'Failed',
+        message: 'availability not found'
+      })
+      
     }
   } catch(err) {
     next(err)

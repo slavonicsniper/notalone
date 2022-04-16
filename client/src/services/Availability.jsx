@@ -12,6 +12,10 @@ const fetchUserAvailabilities = async () => {
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
@@ -30,6 +34,10 @@ const saveAvailabilities = async (data) => {
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
@@ -48,6 +56,10 @@ const deleteAvailabilities = async (data) => {
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 

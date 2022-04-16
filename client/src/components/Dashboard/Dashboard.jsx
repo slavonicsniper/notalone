@@ -114,7 +114,7 @@ export default function Dashboard() {
     const [sendMessageShow, setSendMessageShow] = useState(false);
     const [queryParams, setQueryParams] = useState('')
     const [onlyMatchedSwitch, setOnlyMatchedSwitch] = useState(false)
-    const [message, setMessage] = useState('')
+    const [message, setMessage] = useState(null)
     const [username, setUsername] = useState('')
     const [userUuid, setUserUuid] = useState('')
 
@@ -138,6 +138,7 @@ export default function Dashboard() {
             }
         } catch(err) {
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 
@@ -160,14 +161,18 @@ export default function Dashboard() {
 
     const handleSendMessage = (username, userUuid) => {
         setSendMessageShow(true)
-        setMessage('')
+        setMessage(null)
         setUsername(username)
         setUserUuid(userUuid)
     }
 
     return (
         <Container>
-            <div className="form-check form-switch mb-3">
+            {message &&
+            <Alert variant={message.status === "Failed" ? "danger" : "success"}>
+                {message.message && message.message}
+            </Alert>}
+            <div className="form-check form-switch mb-3 mt-3">
               <input className="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked={onlyMatchedSwitch} onChange={() => setOnlyMatchedSwitch(!onlyMatchedSwitch)}/>
               <label className="form-check-label" htmlFor="flexSwitchCheckChecked">Only matched users</label>
             </div>                   
@@ -209,7 +214,7 @@ export default function Dashboard() {
                         </Row>
                     :      
                     <Alert variant="info">
-                        No matched users found, please adjust your filter
+                        No matched users found for now. Stay patient, there might be one tomorrow!
                     </Alert>
                 :
                 <Row xs={1} sm={2} md={3} lg={4} xl={5} className="g-4">
@@ -249,8 +254,8 @@ export default function Dashboard() {
                 userUuid={userUuid}
                 show={sendMessageShow}
                 onHide={() => setSendMessageShow(false)}
-                message={message}
                 setMessage={setMessage}
+                setSendMessageShow={setSendMessageShow}
             />            
         </Container>
     )

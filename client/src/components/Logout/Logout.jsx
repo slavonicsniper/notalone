@@ -1,10 +1,9 @@
 import React, {useEffect, useState} from 'react'
 import AuthService from '../../services/AuthService';
-import {Alert} from 'react-bootstrap'
+import {Alert, Container} from 'react-bootstrap'
 
 function Logout(props) {
-
-  const [logoutMessage, setLogoutMessage] = useState(null)
+  const [message, setMessage] = useState(null)
 
   const handleLogout = async () => {
     try {
@@ -14,10 +13,11 @@ function Logout(props) {
           props.handleLogin(false)
           window.localStorage.removeItem('data')
         } 
-        setLogoutMessage(response)
+        setMessage(response)
       }
     } catch(err) {
-      setLogoutMessage(err)
+      console.log(err)
+      setMessage({status: 'Failed', message: 'Something went wrong!'})
     }
   }
 
@@ -26,9 +26,13 @@ function Logout(props) {
   })
 
   return (
-    <Alert variant={logoutMessage ? logoutMessage.status === "Success" ? "success" : "danger" : "light"}>
-      { logoutMessage ? logoutMessage.message : "Loading..."}
-    </Alert>
+    <Container>
+      {message &&
+      <Alert variant={message.status === "Failed" ? "danger" : "success"}>
+          {message.message && message.message}
+      </Alert>}
+    </Container>
+    
   )
 }
 
