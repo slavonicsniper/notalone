@@ -14,8 +14,8 @@ import Availabilities from './components/Availability/Availabilities';
 import Inbox from './components/Inbox/Inbox';
 
 function App() {
-  const [loggedIn, setLoggedIn] = useState(false)
-  const [data, setData] = useState({})
+  const [loggedIn, setLoggedIn] = useState(JSON.parse(window.localStorage.getItem('loggedIn')))
+  const [data, setData] = useState(JSON.parse(window.localStorage.getItem('data')))
 
   useEffect(() => {
     setLoggedIn(JSON.parse(window.localStorage.getItem('loggedIn')));
