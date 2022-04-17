@@ -8,7 +8,7 @@ export default function Profile(props) {
     const [email, setEmail] = useState('')
     const [country, setCountry] = useState('')
     const [city, setCity] = useState('')
-    const [age, setAge] = useState(0)
+    const [age, setAge] = useState(null)
 
     useEffect(() => {
         fetchProfile()
@@ -75,8 +75,12 @@ export default function Profile(props) {
                       <Form.Control placeholder="city" value={city} onChange={e => setCity(e.target.value)}/>
                     </Form.Group>
                     <Form.Group className="mb-3" controlId="formProfileAge">
-                      <Form.Label>Age</Form.Label>
-                      <Form.Control type="number" placeholder="age" value={age} onChange={e => setAge(e.target.value)}/>
+                      
+                      {age ?
+                      <><Form.Label>Age</Form.Label>
+                      <Form.Control type="number" placeholder="age" value={new Date().getFullYear() - age} onChange={e => setAge(e.target.value)} readOnly/></> :
+                      <><Form.Label>Birthyear</Form.Label>
+                      <Form.Control type="number" placeholder="birthyear" onChange={e => setAge(e.target.value)}/></>}
                     </Form.Group>
                     <Button type="submit">
                         Update

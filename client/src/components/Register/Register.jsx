@@ -30,8 +30,8 @@ const schema = yup.object().shape({
   country: yup.string().required(),
   age: yup.number()
     .required()
-    .min(15)
-    .max(120),
+    .min(1942, "Sorry but you are too old.")
+    .max(new Date().getFullYear() - 15, "Sorry but you are too young."),
 });
 
 function Register() {
@@ -60,7 +60,7 @@ function Register() {
           passwordConfirm: '',
           country: '',
           city: '',
-          age: 0,
+          age: '',
         }}
       >
         {({
@@ -175,11 +175,11 @@ function Register() {
                       </Form.Control.Feedback>
                     </Form.Group>
                     <Form.Group className="mb-3" controlId="formRegisterAge">
-                      <Form.Label>Age</Form.Label>
+                      <Form.Label>Birthyear</Form.Label>
                       <Form.Control 
                         name="age" 
                         type="number" 
-                        placeholder="age"
+                        placeholder="birthyear"
                         value={values.age}
                         onChange={handleChange}
                         onBlur={handleBlur}
