@@ -16,6 +16,7 @@ export default function AddAvailabilityForm(props) {
     const [fetchedUserAvailabilities, setFetchedUserAvailabilities] = useState([])
     const [fetchedUserAvailabilitiesToDisplay, setFetchedUserAvailabilitiesToDisplay] = useState([])
     const [availabilitiesToDelete, setAvailabilitiesToDelete] = useState([])
+    const [loading, setLoading] = useState(true)
 
     const renderAvailableTimeArray = () => {
         let arr = []
@@ -85,7 +86,8 @@ export default function AddAvailabilityForm(props) {
                 if(response.status === 'Success') {
                     setFetchedUserAvailabilities(response.data)
                     setFetchedUserAvailabilitiesToDisplay(response.data)
-                }                
+                }
+                setLoading(false)           
             }
         } catch(err) {
             console.log(err)
@@ -106,6 +108,14 @@ export default function AddAvailabilityForm(props) {
     useEffect(() => {
         getFetchedUserAvailabilities()
     }, [fetchedUserAvailabilities])
+
+    useEffect(() => {
+        if(fetchedUserAvailabilities.length === 0 && !loading) {
+            setMessage({status: "Info", message: "In order to be visible for other users you need to add at least one availability."})
+        } else {
+            setMessage(null)
+        }
+    }, [loading])
 
     const saveAvailabilities = async () => {
         try {
@@ -148,7 +158,7 @@ export default function AddAvailabilityForm(props) {
     return (
         <>
         {message &&
-        <Alert variant={message.status === "Failed" ? "danger" : "success"}>
+        <Alert variant={(message.status === "Failed" && "danger") || (message.status === "Success" && "success") || (message.status === "Info" && "info")}>
             {message.message && message.message}
         </Alert>
         }

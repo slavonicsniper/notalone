@@ -16,6 +16,7 @@ export default function AddActivityForm(props) {
     const [fetchedUserActivities, setFetchedUserActivities] = useState([])
     const [fetchedUserActivitiesToDisplay, setFetchedUserActivitiesToDisplay] = useState([])
     const [activitiesToDelete, setActivitiesToDelete] = useState([])
+    const [loading, setLoading] = useState(true)
 
     const getFetchedActivities = async () => {
         try {
@@ -47,6 +48,7 @@ export default function AddActivityForm(props) {
                     setFetchedUserActivities(response.data)
                     setFetchedUserActivitiesToDisplay(response.data)
                 }
+                setLoading(false)
             }
         } catch(err) {
             console.log(err)
@@ -69,7 +71,16 @@ export default function AddActivityForm(props) {
 
     useEffect(() => {
         getFetchedUserActivities()
+        
     }, [fetchedUserActivities])
+
+    useEffect(() => {
+        if(fetchedUserActivities.length === 0 && !loading) {
+            setMessage({status: "Info", message: "In order to be visible for other users you need to add at least one activity."})
+        } else {
+            setMessage(null)
+        }
+    }, [loading])
 
     const handleChangeActivity = e => {
         const foundActivity = fetchedActivities.filter(activity => activity.name === e.target.value)
@@ -149,12 +160,10 @@ export default function AddActivityForm(props) {
         }
     }
 
-
-
     return (
         <>
         {message &&
-        <Alert variant={message.status === "Failed" ? "danger" : "success"}>
+        <Alert variant={(message.status === "Failed" && "danger") || (message.status === "Success" && "success") || (message.status === "Info" && "info")}>
             {message.message && message.message}
         </Alert>
         }

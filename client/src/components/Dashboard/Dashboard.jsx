@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import User from '../../services/User';
-import {Row, Col, Card, Container, ListGroup, Button, Modal, Placeholder, Stack, Badge, Alert} from 'react-bootstrap'
+import {Row, Col, Card, Container, ListGroup, Button, Modal, Placeholder, Stack, Badge, Alert, ToastContainer, Toast} from 'react-bootstrap'
 import SendMessage from './SendMessage';
 import userAvatar from './userAvatar.png'
 
@@ -170,8 +170,51 @@ export default function Dashboard(props) {
         setUserUuid(userUuid)
     }
 
+    const [user, setUser] = useState(null)
+
+    const fetchUser = async () => {
+        try {
+            if(!user) {
+                const response = await User.getUser()
+                if(response.message === "Not authenticated") {
+                    props.handleLogin(false)
+                    window.localStorage.removeItem('data')
+                }
+                setUser(response.data)
+            }
+        } catch(err) {
+            console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
+        }
+    }
+
+    useEffect(() => {
+        fetchUser()
+    }, [])
+
+    const [showNotificationActivity, setShowNotificationActivity] = useState(true)
+    const [showNotificationAvailability, setShowNotificationAvailability] = useState(true)
+
     return (
         <Container>
+        <ToastContainer position="bottom-end" className="p-3">
+            {user && user.Activities.length === 0 &&
+            <Toast show={showNotificationActivity} onClose={() => setShowNotificationActivity(!showNotificationActivity)}>
+                <Toast.Header>
+                    <strong className="me-auto">Notification</strong>
+                </Toast.Header>
+                <Toast.Body>Please set your activity.</Toast.Body>
+            </Toast>
+            }
+            {user && user.Availabilities.length === 0 &&
+            <Toast show={showNotificationAvailability} onClose={() => setShowNotificationAvailability(!showNotificationAvailability)}>
+                <Toast.Header>
+                    <strong className="me-auto">Notification</strong>
+                </Toast.Header>
+                <Toast.Body>Please set your availability.</Toast.Body>
+            </Toast>
+            }
+        </ToastContainer>
             {message &&
             <Alert variant={message.status === "Failed" ? "danger" : "success"}>
                 {message.message && message.message}

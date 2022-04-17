@@ -23,7 +23,7 @@ function Logout(props) {
 
   useEffect(() => {
     handleLogout(props)
-  })
+  }, [])
 
   return (
     <Container>
