@@ -11,12 +11,12 @@ const { Op } = require('@sequelize/core');
 
 router.post('/register', async (req, res, next) => {
   try {
-    const {username, email, password, city, country, age} = req.body
+    const {username, email, password, city, country, region, age} = req.body
     const user = await User.findOne({
       where: {email}
     })
     if(!user) {
-      const token = jwt.sign({username, email, password, city, country, age}, process.env.JWT_ACC_ACTIVATE, { expiresIn: "1d" })
+      const token = jwt.sign({username, email, password, city, country, region, age}, process.env.JWT_ACC_ACTIVATE, { expiresIn: "1d" })
       if(token) {
         await UserVerification.create({email_confirmation: token})
         await sendConfirmationEmail(username, email, token)
@@ -39,10 +39,10 @@ router.post('/register', async (req, res, next) => {
 router.get('/confirm/:confirmationCode', async (req, res, next) => {
   try {
     const verifiedToken = jwt.verify(req.params.confirmationCode, process.env.JWT_ACC_ACTIVATE)
-    const {username, email, password, city, country, age} = verifiedToken
+    const {username, email, password, city, country, region, age} = verifiedToken
     const [user, created] = await User.findOrCreate({
       where: { email: verifiedToken.email },
-      defaults: {username, email, password, city, country, age}
+      defaults: {username, email, password, city, country, region, age}
     })
     if(created) {
       UserVerification.destroy({where: {email_confirmation: req.params.confirmationCode}})
@@ -67,8 +67,8 @@ router.get('/confirm/:confirmationCode', async (req, res, next) => {
       if(recievedToken) {
         const decodedToken = jwt.decode(recievedToken.email_confirmation)
         if(decodedToken) {
-          const {username, email, password, city, country, age} = decodedToken
-          const newToken = jwt.sign({username, email, password, city, country, age}, process.env.JWT_ACC_ACTIVATE, { expiresIn: "1d" })
+          const {username, email, password, city, country, region, age} = decodedToken
+          const newToken = jwt.sign({username, email, password, city, country, region, age}, process.env.JWT_ACC_ACTIVATE, { expiresIn: "1d" })
           if(newToken) {
             await recievedToken.update({email_confirmation: newToken})
             await sendConfirmationEmail(username, email, newToken)
@@ -272,7 +272,7 @@ router.get('/', checkAuthentication, async (req, res, next) => {
             [Op.ne]: req.user.uuid
           }
         },
-        attributes: ['username', 'uuid', 'country', 'city', 'age']
+        attributes: ['username', 'uuid', 'country', 'region', 'city', 'age']
       })
     } else {
       users = await User.findAll({
@@ -291,7 +291,7 @@ router.get('/', checkAuthentication, async (req, res, next) => {
             [Op.ne]: req.user.uuid
           }
         },
-        attributes: ['username', 'uuid', 'country', 'city', 'age']
+        attributes: ['username', 'uuid', 'country', 'region', 'city', 'age']
       })
     }
     const filteredUsers = users.filter(user => user.Activities.length > 0 && user.Availabilities.length > 0)
