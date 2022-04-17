@@ -19,7 +19,7 @@ const getUsers = async (queryParams) => {
     }
 }
 
-const getUser = async (uuid) => {
+const getUser = async () => {
     const requestOptions = {
         method: 'GET',
         headers: { 
@@ -28,7 +28,7 @@ const getUser = async (uuid) => {
         credentials: 'include',
     };
     try {
-        const response = await fetch(process.env.REACT_APP_API_URL + '/users/' + uuid, requestOptions)
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/me', requestOptions)
         const json = await response.json();
         return json;
     } catch(err) {

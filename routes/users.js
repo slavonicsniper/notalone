@@ -348,6 +348,38 @@ router.get('/profile', checkAuthentication, async (req, res, next) => {
   }
 })
 
+router.get('/me', checkAuthentication, async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      where: {
+        uuid: req.user.uuid
+      },
+      include: [{
+        model: Availability,
+      },{
+        model: Activity,
+        through: {
+          attributes: []
+        }
+      }]
+    })
+    if(!user) {
+      res.status(404).send({
+        status: 'Failed',
+        message: 'User not found'
+      })
+    } else {
+      res.status(200).send({
+        status: 'Success',
+        message: 'User found',
+        data: user
+      })
+    }
+  } catch(err) {
+    console.log(err)
+  }
+})
+
 router.get('/:uuid', checkAuthentication, async (req, res, next) => {
   try {
     const user = await User.findOne({
