@@ -26,10 +26,9 @@ const schema = yup.object().shape({
   passwordConfirm: yup.string()
     .required()
     .oneOf([yup.ref('password')], 'Passwords do not match'),
-  city: yup.string().required(),
-  country: yup.string().required(),
+  city: yup.string(),
+  country: yup.string(),
   age: yup.number()
-    .required()
     .min(1942, "Sorry but you are too old.")
     .max(new Date().getFullYear() - 15, "Sorry but you are too young."),
 });
