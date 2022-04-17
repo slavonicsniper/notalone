@@ -27,6 +27,8 @@ function UserCard(props) {
                         <br/>
                         <strong>Country:</strong> {props.user.country}
                         <br/>
+                        <strong>Region:</strong> {props.user.region}
+                        <br/>
                         <strong>Age:</strong> {new Date().getFullYear() - props.user.age}
                     </ListGroup.Item>
                     <ListGroup.Item variant="light">

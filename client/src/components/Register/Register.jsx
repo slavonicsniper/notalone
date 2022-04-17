@@ -1,10 +1,9 @@
 import React, {useState} from 'react'
 import {Formik} from 'formik'
 import * as yup from 'yup';
-
 import AuthService from '../../services/AuthService';
 import {Form, Button, Alert, Stack, Container} from 'react-bootstrap'
-
+import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
 
 const schema = yup.object().shape({
   username: yup.string()
@@ -58,6 +57,7 @@ function Register() {
           password: '',
           passwordConfirm: '',
           country: '',
+          region: '',
           city: '',
           age: '',
         }}
@@ -145,18 +145,28 @@ function Register() {
                     </Form.Group>
                     <Form.Group className="mb-3" controlId="formRegisterCountry">
                       <Form.Label>Country</Form.Label>
-                      <Form.Control 
-                        name="country" 
+                      <CountryDropdown 
+                        aria-label="Default select example"
+                        className="form-select"
+                        name="country"
                         placeholder="country"
-                        value={values.country}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        isInvalid={touched.country && errors.country}
-                        isValid={touched.country && !errors.country}
+                        value={values.country} 
+                        onChange={(_, e) => handleChange(e)} 
+                        onBlur={handleBlur}                        
                       />
-                      <Form.Control.Feedback type="invalid">
-                        {errors.country}
-                      </Form.Control.Feedback>
+                    </Form.Group>
+                    <Form.Group className="mb-3" controlId="formRegisterRegion">
+                      <Form.Label>Region</Form.Label>
+                      <RegionDropdown 
+                        aria-label="Default select example"
+                        className="form-select"
+                        name="region"
+                        placeholder="region"
+                        country={values.country}
+                        value={values.region} 
+                        onChange={(_, e) => handleChange(e)} 
+                        onBlur={handleBlur} 
+                      />
                     </Form.Group>
                     <Form.Group className="mb-3" controlId="formRegisterCity">
                       <Form.Label>City</Form.Label>

@@ -7,6 +7,7 @@ export default function Profile(props) {
     const [username, setUsername] = useState('')
     const [email, setEmail] = useState('')
     const [country, setCountry] = useState('')
+    const [region, setRegion] = useState('')
     const [city, setCity] = useState('')
     const [age, setAge] = useState(null)
 
@@ -25,6 +26,7 @@ export default function Profile(props) {
                 setUsername(response.data.username)
                 setEmail(response.data.email)
                 setCountry(response.data.country)
+                setRegion(response.data.region)
                 setCity(response.data.city)
                 setAge(response.data.age)
             }
@@ -38,7 +40,7 @@ export default function Profile(props) {
     const handleUpdate = async e => {
         e.preventDefault();
         try {
-            const response = await User.updateProfile({country, city, age})
+            const response = await User.updateProfile({country, city, region, age})
             if(response.message === "Not authenticated") {
                 props.handleLogin(false)
                 window.localStorage.removeItem('data')

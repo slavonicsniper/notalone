@@ -25,6 +25,7 @@
     "passport-local": "^1.0.0",
     "pg": "^8.7.3",
     "pg-hstore": "^2.3.4",
+    "react-country-region-selector": "^3.4.0",
     "sendmail": "^1.6.1",
     "sequelize": "^6.17.0"
   }
