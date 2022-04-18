@@ -26,10 +26,10 @@ const schema = yup.object().shape({
     .required()
     .oneOf([yup.ref('password')], 'Passwords do not match'),
   city: yup.string(),
-  country: yup.string(),
-  age: yup.number()
-    .min(1942, "Sorry but you are too old.")
-    .max(new Date().getFullYear() - 15, "Sorry but you are too young."),
+  age: yup.string()
+    .length(4, "Invalid year")
+    .test("age", "Sorry but you are too old.", (age) =>  !age || age > 1942)
+    .test("age", "Sorry but you are too young.", (age) =>  !age || age < new Date().getFullYear() - 15),
 });
 
 function Register() {
@@ -187,7 +187,6 @@ function Register() {
                       <Form.Label>Birthyear</Form.Label>
                       <Form.Control 
                         name="age" 
-                        type="number" 
                         placeholder="birthyear"
                         value={values.age}
                         onChange={handleChange}
