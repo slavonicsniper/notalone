@@ -8,6 +8,7 @@ import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
 const schema = yup.object().shape({
   username: yup.string()
     .required()
+    .matches(/^[A-Za-z]+$/, "Only English letters")
     .test("username", "Already used", async (username) => {
       const response = await AuthService.checkAvailableUsernameOrEmail(`?column=username&value=${username}`)
       return response.status === "Success"
@@ -25,7 +26,8 @@ const schema = yup.object().shape({
   passwordConfirm: yup.string()
     .required()
     .oneOf([yup.ref('password')], 'Passwords do not match'),
-  city: yup.string(),
+  city: yup.string()
+    .matches(/^[A-Za-z]+$/, "Only English letters"),
   age: yup.string()
     .length(4, "Invalid year")
     .test("age", "Sorry but you are too old.", (age) =>  !age || age > 1942)

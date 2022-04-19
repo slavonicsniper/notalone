@@ -6,7 +6,8 @@ import * as yup from 'yup';
 import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
 
 const schema = yup.object().shape({
-    city: yup.string(),
+    city: yup.string()
+        .matches(/^[A-Za-z]+$/, "Only English letters"),
     age: yup.string()
         .length(4, "Invalid year")
         .test("age", "Sorry but you are too old.", (age) => !age || age > 1942)

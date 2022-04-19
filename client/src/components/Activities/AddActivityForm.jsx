@@ -2,6 +2,21 @@ import React, {useEffect, useState} from 'react'
 import {Stack, Form, Button, Alert} from 'react-bootstrap'
 import Activity from '../../services/Activity';
 import AddActivityList from './AddActivityList';
+import {Formik} from 'formik'
+import * as yup from 'yup';
+
+const schema = yup.object().shape({
+    activity: yup.string()
+        .required("Required")
+        .lowercase()
+        .strict()
+        .matches(/^[A-Za-z]+$/, "Only English letters"),
+    activityType: yup.string()
+        .required("Required")
+        .lowercase()
+        .strict()
+        .matches(/^[A-Za-z]+$/, "Only English letters"),
+  });
 
 export default function AddActivityForm(props) {
     const [fetchedActivities, setFetchedActivities] = useState([])
@@ -56,7 +71,7 @@ export default function AddActivityForm(props) {
         }
     }
 
-    const handleReset = () => {
+    const handleResetCustom = () => {
         setFetchedUserActivitiesToDisplay(fetchedUserActivities)
         setActivitiesToDelete([])
         setExistingActivities([])
@@ -167,16 +182,78 @@ export default function AddActivityForm(props) {
             {message.message && message.message}
         </Alert>
         }
+        <Formik
+        validationSchema={schema}        
+        onSubmit={addActivities}
+        initialValues={{
+            activity: '',
+            activityType: activityTypeExist ? activityTypeExist : activityTypeNew
+        }}
+        >
+        {({
+          handleSubmit,
+          handleChange,
+          handleBlur,
+          handleReset,
+          values,
+          touched,
+          errors,
+          isSubmitting,
+          dirty
+        }) => (
+        <Form onSubmit={handleSubmit}>
         <Stack direction="horizontal" gap={3}>
-            <input className="form-control me-auto" list="datalistOptions" id="exampleDataList" placeholder="Search or add an activity" onClick={getFetchedActivities} onChange={handleChangeActivity}/>
+            <input 
+            className={
+                touched.activity && errors.activity 
+                    ? "form-control me-auto is-invalid"
+                    : touched.activity && !errors.activity
+                        ? "form-control me-auto is-valid"
+                        : "form-control me-auto"
+            }
+            list="datalistOptions" 
+            id="exampleDataList" 
+            placeholder="Search or add an activity"
+            name="activity"
+            value={values.activity}
+            onClick={getFetchedActivities} 
+            onChange={e => {
+                handleChange(e)
+                handleChangeActivity(e)}}
+            onBlur={handleBlur}
+            />
             <datalist id="datalistOptions">
                 {fetchedActivities.map(fetchedActivity => <option key={fetchedActivity.name} value={fetchedActivity.name}/>)}
-            </datalist>            
-            <Form.Control placeholder="Type" value={activityTypeExist ? activityTypeExist : activityTypeNew} onChange={e => setActivityTypeNew(e.target.value)} disabled={activityTypeDisable}/>
-            <Button variant="secondary" onClick={addActivities}>Add</Button>
+            </datalist>
+            {touched.activity && errors.activity && (
+              <div className="invalid-feedback">{errors.activity}</div>
+            )}
+            <Form.Control 
+            placeholder="Type"
+            name="activityType"
+            value={values.activityType} 
+            onChange={e => {
+                handleChange(e)
+                setActivityTypeNew(e.target.value)}}
+            onBlur={handleBlur}
+            isInvalid={touched.activityType && errors.activityType}
+            isValid={touched.activityType && !errors.activityType}
+            disabled={activityTypeDisable}/>
+            {touched.activityType && errors.activityType && (
+              <div className="invalid-feedback">{errors.activityType}</div>
+            )}
+            <Button type="submit" variant="secondary">Add</Button>
             <div className="vr" />
-            <Button variant="outline-danger" onClick={handleReset}>Reset</Button>            
+            <Button 
+            variant="outline-danger" 
+            onClick={() => {
+                handleReset()
+                handleResetCustom()}} 
+            >Reset</Button>            
         </Stack>
+        </Form>
+        )}
+        </Formik>        
         <h6>Existing activities</h6>
         {fetchedUserActivitiesToDisplay.map(activity => <AddActivityList key={activity.name} activity={activity} deleteActivity={deleteActivity}/>)}
         {activitiesToDelete.length > 0 && <Button variant="primary" onClick={deleteActivities} className="col-md-3 mx-auto">Delete</Button>}
@@ -184,6 +261,7 @@ export default function AddActivityForm(props) {
         {existingActivities.map(activity => <AddActivityList key={activity.name} activity={activity} removeActivity={removeActivity}/>)}
         {newActivities.map(activity => <AddActivityList key={activity.name} activity={activity} removeActivity={removeActivity}/>)}
         {existingActivities.length > 0 ? <Button variant="primary" onClick={saveActivities} className="col-md-3 mx-auto">Save</Button> : newActivities.length > 0 ? <Button variant="primary" onClick={saveActivities} className="col-md-3 mx-auto">Save</Button> : null}
+
         </>
     )
 }
