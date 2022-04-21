@@ -5,19 +5,6 @@ import AddActivityList from './AddActivityList';
 import {Formik} from 'formik'
 import * as yup from 'yup';
 
-const schema = yup.object().shape({
-    activity: yup.string()
-        .required("Required")
-        .lowercase()
-        .strict()
-        .matches(/^[A-Za-z]+$/, "Only English letters"),
-    activityType: yup.string()
-        .required("Required")
-        .lowercase()
-        .strict()
-        .matches(/^[A-Za-z]+$/, "Only English letters"),
-  });
-
 export default function AddActivityForm(props) {
     const [fetchedActivities, setFetchedActivities] = useState([])
     const [activityExist, setActivityExist] = useState('')
@@ -32,6 +19,19 @@ export default function AddActivityForm(props) {
     const [fetchedUserActivitiesToDisplay, setFetchedUserActivitiesToDisplay] = useState([])
     const [activitiesToDelete, setActivitiesToDelete] = useState([])
     const [loading, setLoading] = useState(true)
+
+    const schema = yup.object().shape({
+        activity: yup.string()
+            .required("Required")
+            .trim("Leading or trailing whitespace")
+            .strict()
+            .matches(/[A-Za-z ]/, "Only English letters"),
+        activityType: !activityTypeExist && yup.string()
+            .required("Required")
+            .trim("Leading or trailing whitespace")
+            .strict()        
+            .matches(/^[A-Za-z]+$/, "Only English letters"),
+      });
 
     const getFetchedActivities = async () => {
         try {
@@ -98,7 +98,7 @@ export default function AddActivityForm(props) {
     }, [loading])
 
     const handleChangeActivity = e => {
-        const foundActivity = fetchedActivities.filter(activity => activity.name === e.target.value)
+        const foundActivity = fetchedActivities.filter(activity => activity.name === e.target.value.toLowerCase())
         setActivityTypeExist('')
         if(foundActivity.length > 0) {
             setActivityTypeExist(foundActivity[0].type)
@@ -106,14 +106,14 @@ export default function AddActivityForm(props) {
             setActivityTypeDisable(true)
         } else {
             setActivityTypeDisable(false)
-            setActivityNew(e.target.value)
+            setActivityNew(e.target.value.toLowerCase())
         }
     }
 
     const addActivities = () => {
         setMessage(null)
         if(activityTypeExist) {
-            if(existingActivities.find(activity => activity.name === activityExist && activity.type === activityTypeExist)) {
+            if(existingActivities.find(activity => activity.name === activityExist && activity.type === activityTypeExist) || fetchedUserActivities.find(activity => activity.name === activityExist && activity.type === activityTypeExist)) {
                 setMessage({status: "Failed", message: 'Activity already added'})
             } else {
                 setExistingActivities(prev => [...prev, {name: activityExist, type: activityTypeExist}])
@@ -187,7 +187,7 @@ export default function AddActivityForm(props) {
         onSubmit={addActivities}
         initialValues={{
             activity: '',
-            activityType: activityTypeExist ? activityTypeExist : activityTypeNew
+            activityType: ''
         }}
         >
         {({
@@ -231,13 +231,13 @@ export default function AddActivityForm(props) {
             <Form.Control 
             placeholder="Type"
             name="activityType"
-            value={values.activityType} 
+            value={activityTypeExist ? activityTypeExist : values.activityType} 
             onChange={e => {
                 handleChange(e)
-                setActivityTypeNew(e.target.value)}}
+                setActivityTypeNew(e.target.value.toLowerCase())}}
             onBlur={handleBlur}
             isInvalid={touched.activityType && errors.activityType}
-            isValid={touched.activityType && !errors.activityType}
+            isValid={touched.activityType && !errors.activityType || activityTypeExist && !errors.activityType}
             disabled={activityTypeDisable}/>
             {touched.activityType && errors.activityType && (
               <div className="invalid-feedback">{errors.activityType}</div>
