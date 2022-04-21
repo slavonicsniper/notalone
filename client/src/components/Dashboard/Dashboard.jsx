@@ -339,10 +339,10 @@ export default function Dashboard(props) {
                                     </Card.Body>
                                     <ListGroup className="list-group-flush">
                                         <ListGroup.Item className="text-truncate">                        
-                                            <small className="text-muted">{user.Activities.map(activity => activity.name).join(', ')}</small>
+                                            <small className="text-muted">{user.Activities.length > 0 ? user.Activities.map(activity => activity.name).join(', ') : 'Undefined'}</small>
                                         </ListGroup.Item>
                                         <ListGroup.Item className="text-truncate">
-                                        <small className="text-muted">{user.Availabilities.map(availability => `${availability.day} ${availability. start_time} - ${availability.end_time}`).join(', ')}</small>
+                                        <small className="text-muted">{user.Availabilities.length > 0 ? user.Availabilities.map(availability => `${availability.day} ${availability. start_time} - ${availability.end_time}`).join(', ') : 'Undefined'}</small>
                                         </ListGroup.Item>
                                     </ListGroup>
                                     <Card.Body>
