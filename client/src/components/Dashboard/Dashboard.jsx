@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import User from '../../services/User';
-import {Row, Col, Card, Container, ListGroup, Button, Modal, Placeholder, Stack, Badge, Alert, ToastContainer, Toast} from 'react-bootstrap'
+import {Row, Col, Card, Container, ListGroup, Button, Modal, Placeholder, Stack, Badge, Alert, ToastContainer, Toast, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import SendMessage from './SendMessage';
 import userAvatar from './userAvatar.png'
 
@@ -109,39 +109,27 @@ function UserCard(props) {
 
 export default function Dashboard(props) {
     const [users, setUsers] = useState(null)
-    const [allUsers, setAllUsers] = useState(null)
-    const [filteredUsers, setFilteredUsers] = useState(null)
     const [clickedUser, setClickedUser] = useState(null)
     const [userCardShow, setUserCardShow] = useState(false);
     const [sendMessageShow, setSendMessageShow] = useState(false);
-    const [queryParams, setQueryParams] = useState('')
+    const [queryParams, setQueryParams] = useState([])
     const [onlyMatchedSwitch, setOnlyMatchedSwitch] = useState(false)
+    const [activitySwitch, setActivitySwitch] = useState(false)
+    const [availabilitySwitch, setAvailabilitySwitch] = useState(false)
+    const [countrySwitch, setCountrySwitch] = useState(false)
+    const [citySwitch, setCitySwitch] = useState(false)
     const [message, setMessage] = useState(null)
     const [username, setUsername] = useState('')
     const [userUuid, setUserUuid] = useState('')
 
     const fetchUsers = async () => {
-        try {
-            if(allUsers && filteredUsers) {
-                if(queryParams) {
-                        setUsers(filteredUsers)
-                } else {                    
-                        setUsers(allUsers)
-                }
-            } else {
-                const response = await User.getUsers(queryParams)
-                if(response.message === "Not authenticated") {
-                    props.handleLogin(false)
-                    window.localStorage.removeItem('data')
-                }
-                if(queryParams) {
-                        setFilteredUsers(response.data)
-                        setUsers(response.data)
-                } else {                    
-                        setAllUsers(response.data)
-                        setUsers(response.data)
-                }
+        try {            
+            const response = await User.getUsers(queryParams.length > 0 ? '?' + queryParams.join('&') : '')
+            if(response.message === "Not authenticated") {
+                props.handleLogin(false)
+                window.localStorage.removeItem('data')
             }
+            setUsers(response.data)            
         } catch(err) {
             console.log(err)
             setMessage({status: "Failed", message: "Something went wrong!"})
@@ -155,11 +143,73 @@ export default function Dashboard(props) {
 
     useEffect(() => {
         if(onlyMatchedSwitch) {
-            setQueryParams('?filter=true') 
+            setQueryParams((prev) => [...prev, 'onlyMatch=true'])
         } else {
-            setQueryParams('')
+            setQueryParams(queryParams.filter(param => param != 'onlyMatch=true'))
         }
     }, [onlyMatchedSwitch])
+    
+    const onlyMatchedInfo = (props) => (
+        <Tooltip {...props}>
+          Show users that match at least one of your activities and one of your availability.
+        </Tooltip>
+    );
+
+    useEffect(() => {
+        if(activitySwitch) {
+            setQueryParams((prev) => [...prev, 'activity=true'])
+        } else {
+            setQueryParams(queryParams.filter(param => param != 'activity=true'))
+        }
+    }, [activitySwitch])
+
+    const activityInfo = (props) => (
+        <Tooltip {...props}>
+          Show users that match at least one of your activities.
+        </Tooltip>
+    );
+
+    useEffect(() => {
+        if(availabilitySwitch) {
+            setQueryParams((prev) => [...prev, 'availability=true'])
+        } else {
+            setQueryParams(queryParams.filter(param => param != 'availability=true'))
+        }
+    }, [availabilitySwitch])
+
+    const availabilityInfo = (props) => (
+        <Tooltip {...props}>
+          Show users that match at least one of your availability.
+        </Tooltip>
+    );
+
+    useEffect(() => {
+        if(countrySwitch) {
+            setQueryParams((prev) => [...prev, 'country=true'])
+        } else {
+            setQueryParams(queryParams.filter(param => param != 'country=true'))
+        }
+    }, [countrySwitch])
+
+    const countryInfo = (props) => (
+        <Tooltip {...props}>
+          Show users that match your country.
+        </Tooltip>
+    );
+
+    useEffect(() => {
+        if(citySwitch) {
+            setQueryParams((prev) => [...prev, 'city=true'])
+        } else {
+            setQueryParams(queryParams.filter(param => param != 'city=true'))
+        }
+    }, [citySwitch])
+
+    const cityInfo = (props) => (
+        <Tooltip {...props}>
+          Show users that match your city.
+        </Tooltip>
+    );
 
     useEffect(() => {
         fetchUsers()
@@ -221,10 +271,58 @@ export default function Dashboard(props) {
             <Alert variant={message.status === "Failed" ? "danger" : "success"}>
                 {message.message && message.message}
             </Alert>}
-            <div className="form-check form-switch mb-3 mt-3">
-              <input className="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked={onlyMatchedSwitch} onChange={() => setOnlyMatchedSwitch(!onlyMatchedSwitch)}/>
+            <Stack direction="horizontal" gap={3} className="mt-3 mb-3">
+            <OverlayTrigger
+                placement="auto"
+                delay={{ show: 250, hide: 400 }}
+                overlay={onlyMatchedInfo}
+            >                
+            <div className="form-check form-switch ">
+              <input className="form-check-input" type="checkbox" role="switch"  checked={onlyMatchedSwitch} onChange={() => setOnlyMatchedSwitch(!onlyMatchedSwitch)} disabled={user && user.Activities.length > 0 && user.Availabilities.length > 0 ? false : true}/>
               <label className="form-check-label" htmlFor="flexSwitchCheckChecked">Only matched users</label>
-            </div>                   
+            </div>
+            </OverlayTrigger>
+            <OverlayTrigger
+                placement="auto"
+                delay={{ show: 250, hide: 400 }}
+                overlay={activityInfo}
+            >
+            <div className="form-check form-switch ">
+              <input className="form-check-input" type="checkbox" role="switch"  checked={activitySwitch} onChange={() => setActivitySwitch(!activitySwitch)} disabled={user && user.Activities.length > 0 ? false : true}/>
+              <label className="form-check-label" htmlFor="flexSwitchCheckChecked">Activity</label>
+            </div>
+            </OverlayTrigger>
+            <OverlayTrigger
+                placement="auto"
+                delay={{ show: 250, hide: 400 }}
+                overlay={availabilityInfo}
+            >
+            <div className="form-check form-switch ">
+              <input className="form-check-input" type="checkbox" role="switch"  checked={availabilitySwitch} onChange={() => setAvailabilitySwitch(!availabilitySwitch)} disabled={user && user.Availabilities.length > 0 ? false : true}/>
+              <label className="form-check-label" htmlFor="flexSwitchCheckChecked">Availability</label>
+            </div>
+            </OverlayTrigger>
+            <OverlayTrigger
+                placement="auto"
+                delay={{ show: 250, hide: 400 }}
+                overlay={countryInfo}
+            >
+            <div className="form-check form-switch ">
+              <input className="form-check-input" type="checkbox" role="switch"  checked={countrySwitch} onChange={() => setCountrySwitch(!countrySwitch)} disabled={user && user.country ? false : true}/>
+              <label className="form-check-label" htmlFor="flexSwitchCheckChecked">Country</label>
+            </div>
+            </OverlayTrigger>
+            <OverlayTrigger
+                placement="auto"
+                delay={{ show: 250, hide: 400 }}
+                overlay={cityInfo}
+            >
+            <div className="form-check form-switch ">
+              <input className="form-check-input" type="checkbox" role="switch"  checked={citySwitch} onChange={() => setCitySwitch(!citySwitch)} disabled={user && user.city ? false : true}/>
+              <label className="form-check-label" htmlFor="flexSwitchCheckChecked">City</label>
+            </div>
+            </OverlayTrigger>
+            </Stack>                   
             {
                 users ?
                     users.length > 0 ?

@@ -210,34 +210,57 @@ router.get('/logout', checkAuthentication, (req, res, next) => {
   }
 })
 
-
-
 router.get('/', checkAuthentication, async (req, res, next) => {
-  /* we will need something like this for more queries with filters
-  const makeSequelizeOptions = (query) => {
-    const options = {}
-    query.joinModel ? options.include = {model: req.query.joinModel} : null
-    query.joinModelLimit ? options.include.limit = req.query.joinModelLimit : null
-    query.model ? options.include.include = {model: req.query.model} : null
-    return options
-  }
-  */
+  req.query.onlyMatch && console.log('onlyMatch is true')
   try {
-    let users
-    if(req.query.filter) {
-      const user = await User.findOne({
-        where: {
-          uuid: req.user.uuid
-        },
-      })
+    const options = {
+      include: [],
+      where: {
+        uuid: {
+          [Op.ne]: req.user.uuid
+        }
+      },
+      attributes: ['username', 'uuid', 'country', 'region', 'city', 'age']
+    }
+
+    const user = await User.findOne({
+      where: {
+        uuid: req.user.uuid
+      },
+    })
+    
+    if(req.query.country) {
+      options.where.country = user.country
+    }
+
+    if(req.query.city) {
+      options.where.city = user.city
+    }
+    
+    let whereForActivities
+    if(req.query.onlyMatch || req.query.activity) {
       const userActivities = await user.getActivities({
         joinTableAttributes: [],
         attributes: ['uuid']
       })
+      whereForActivities = userActivities.map(activity => activity.uuid)
+    }
+    
+    options.include.push({
+      model: Activity,
+      attributes: ['name', 'uuid'],
+      where: (req.query.activity || req.query.onlyMatch) && {uuid: whereForActivities},
+      through: {
+        attributes: []
+      }
+    })
+
+    let whereForAvailabilities
+    if(req.query.onlyMatch || req.query.availability) {
       const userAvailabilities = await user.getAvailabilities({
         attributes: ['day', 'start_time', 'end_time']
       })      
-      const whereForAvailabilities = userAvailabilities.map(availability => {
+      whereForAvailabilities = userAvailabilities.map(availability => {
         return {
           day: availability.day,
           start_time: {
@@ -248,53 +271,26 @@ router.get('/', checkAuthentication, async (req, res, next) => {
           }
         }
       })
-      const whereForActivities = userActivities.map(activity => activity.uuid)
-
-      users = await User.findAll({
-        include: [{
-          model: Activity,
-          attributes: ['name', 'uuid'],
-          where: {
-            uuid: whereForActivities
-          },
-          through: {
-            attributes: []
-          }
-        },{
-          model: Availability,
-          attributes: ['day', 'start_time', 'end_time', 'uuid'],
-          where: {
-            [Op.or]: whereForAvailabilities
-          }
-        }],
-        where: {
-          uuid: {
-            [Op.ne]: req.user.uuid
-          }
-        },
-        attributes: ['username', 'uuid', 'country', 'region', 'city', 'age']
-      })
-    } else {
-      users = await User.findAll({
-        include: [{
-            model: Activity,
-            attributes: ['name', 'uuid'],
-            through: {
-              attributes: []
-            }
-          },{
-            model: Availability,
-            attributes: ['day', 'start_time', 'end_time', 'uuid'],
-        }],
-        where: {
-          uuid: {
-            [Op.ne]: req.user.uuid
-          }
-        },
-        attributes: ['username', 'uuid', 'country', 'region', 'city', 'age']
-      })
     }
-    const filteredUsers = users.filter(user => user.Activities.length > 0 && user.Availabilities.length > 0)
+
+    options.include.push({
+      model: Availability,
+      attributes: ['day', 'start_time', 'end_time', 'uuid'],
+      where: (req.query.availability || req.query.onlyMatch) && {[Op.or]: whereForAvailabilities}
+    })
+    
+    const users = await User.findAll(options)
+    let filteredUsers
+    if(req.query.onlyMatch || (req.query.activity && req.query.availability) || (req.query.activity && req.query.availability && req.query.onlyMatch)) {
+      filteredUsers = users.filter(user => user.Activities.length > 0 && user.Availabilities.length > 0)
+    } else if(req.query.activity) {
+      filteredUsers = users.filter(user => user.Activities.length > 0)
+    } else if(req.query.availability) {
+      filteredUsers = users.filter(user => user.Availabilities.length > 0)
+    } else {
+      filteredUsers = users
+    }
+    
     res.status(200).send({
       data: filteredUsers
     })
