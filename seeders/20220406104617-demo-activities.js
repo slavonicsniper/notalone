@@ -5,38 +5,38 @@ module.exports = {
   async up (queryInterface, Sequelize) {
     await queryInterface.bulkInsert('activities', [{
       uuid: uuidv4(),
-      name: 'CSGO',
-      type: 'Gaming',
+      name: 'csgo',
+      type: 'gaming',
       createdAt: new Date(),
       updatedAt: new Date()
     },{
       uuid: uuidv4(),
-      name: 'Road Cycling',
-      type: 'Sport',
+      name: 'road cycling',
+      type: 'sport',
       createdAt: new Date(),
       updatedAt: new Date()
     },{
       uuid: uuidv4(),
-      name: 'Table Tennis',
-      type: 'Sport',
+      name: 'table tennis',
+      type: 'sport',
       createdAt: new Date(),
       updatedAt: new Date()
     },{
       uuid: uuidv4(),
-      name: 'Swimming',
-      type: 'Sport',
+      name: 'swimming',
+      type: 'sport',
       createdAt: new Date(),
       updatedAt: new Date()
     },{
       uuid: uuidv4(),
-      name: 'Programing',
-      type: 'Studying',
+      name: 'programming',
+      type: 'studying',
       createdAt: new Date(),
       updatedAt: new Date()
     },{
       uuid: uuidv4(),
-      name: 'Painting',
-      type: 'Art',
+      name: 'painting',
+      type: 'art',
       createdAt: new Date(),
       updatedAt: new Date()
     }], {});
