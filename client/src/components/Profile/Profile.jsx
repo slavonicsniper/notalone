@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import User from '../../services/User';
-import {Form, Container, Button, Alert, Placeholder} from 'react-bootstrap'
+import {Form, Container, Button, Alert, Placeholder, Stack} from 'react-bootstrap'
 import {Formik} from 'formik'
 import * as yup from 'yup';
 import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
@@ -42,6 +42,20 @@ export default function Profile(props) {
     const handleUpdate = async values => {
         try {
             const response = await User.updateProfile(values)
+            if(response.message === "Not authenticated") {
+                props.handleLogin(false)
+                window.localStorage.removeItem('data')
+            }
+            setMessage({status: response.status, message: response.message})
+        } catch(err) {
+            console.log(err)
+            setMessage({status: 'Failed', message: 'Something went wrong!'})
+        }
+    }
+
+    const handleDelete = async () => {
+        try {
+            const response = await User.deleteProfile()
             if(response.message === "Not authenticated") {
                 props.handleLogin(false)
                 window.localStorage.removeItem('data')
@@ -152,10 +166,15 @@ export default function Profile(props) {
                                 <Form.Control.Feedback type="invalid">
                                   {errors.age}
                                 </Form.Control.Feedback></>}
-                            </Form.Group>                        
-                        <Button type="submit">
-                            Update
-                        </Button>
+                            </Form.Group>
+                            <Stack direction="horizontal" gap={1} className="justify-content-center">      
+                                <Button type="submit">
+                                    Update
+                                </Button>
+                                <Button variant="danger" onClick={handleDelete}>
+                                    Delete
+                                </Button>
+                            </Stack>
                     </Form>
                 </Container>
             

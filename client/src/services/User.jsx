@@ -84,9 +84,31 @@ const updateProfile = async (data) => {
     }
 }
 
+const deleteProfile = async () => {
+    const requestOptions = {
+        method: 'DELETE',
+        headers: { 
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+    };
+    try {
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/profile', requestOptions)
+        const json = await response.json();
+        return json;
+    } catch(err) {
+        console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
+    }
+}
+
 export default {
     getUsers,
     getUser,
     getProfile,
     updateProfile,
+    deleteProfile
 }
