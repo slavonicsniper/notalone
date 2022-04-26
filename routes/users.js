@@ -1,28 +1,54 @@
 var express = require('express');
 var router = express.Router();
-const {User, Activity, Availability, UserActivity} = require('../models')
+const {User, Activity, Availability, UserActivity, UserVerification} = require('../models')
 const passport = require('passport');
 const { checkAuthentication } = require('../services/auth');
 const jwt = require("jsonwebtoken")
 const {sendConfirmationEmail, sendResetPasswordEmail} = require('../services/sendmail');
 const useractivity = require('../models/useractivity');
 require("dotenv").config();
-const { Op } = require('@sequelize/core')
+const { Op } = require('@sequelize/core');
 
 router.post('/register', async (req, res, next) => {
   try {
-    const token = jwt.sign({email: req.body.email}, process.env.JWT_ACC_ACTIVATE, { expiresIn: '1d' })
-    req.body.confirmation_code = token
-    const {username} = req.body
+    const {username, email, password, city, country, region, age} = req.body
+    const user = await User.findOne({
+      where: {email}
+    })
+    if(!user) {
+      const token = jwt.sign({username, email, password, city, country, region, age}, process.env.JWT_ACC_ACTIVATE, { expiresIn: "1d" })
+      if(token) {
+        await UserVerification.create({email_confirmation: token})
+        await sendConfirmationEmail(username, email, token)
+        res.status(201).send({
+          status: 'Success',
+          message: 'Please confirm your email to finish the registration before you login.',
+        })
+      }
+    } else {
+      res.status(400).send({
+        status: 'Failed',
+        message: 'Email already used'
+      })
+    }
+  } catch(err) {
+    console.log(err)
+  }
+});
+
+router.get('/confirm/:confirmationCode', async (req, res, next) => {
+  try {
+    const verifiedToken = jwt.verify(req.params.confirmationCode, process.env.JWT_ACC_ACTIVATE)
+    const {username, email, password, city, country, region, age} = verifiedToken
     const [user, created] = await User.findOrCreate({
-      where: { username },
-      defaults: req.body
+      where: { email: verifiedToken.email },
+      defaults: {username, email, password, city, country, region, age}
     })
     if(created) {
-      await sendConfirmationEmail(user.username, user.email, user.confirmation_code)
+      UserVerification.destroy({where: {email_confirmation: req.params.confirmationCode}})
       res.status(201).send({
         status: 'Success',
-        message: 'User registered, please confirm your email',
+        message: 'Email confirmed',
       })
     }
     else {
@@ -32,42 +58,35 @@ router.post('/register', async (req, res, next) => {
       })
     }
   } catch(err) {
-    next(err)
-  }
-});
-
-router.get('/confirm/:confirmationCode', async (req, res) => {
-  try {
-    const decodedToken = jwt.verify(req.params.confirmationCode, process.env.JWT_ACC_ACTIVATE)
-    if(!decodedToken) {
-      res.status(401).send({
-        status: 'Failed',
-        message: 'Wrong or expired token'
-      })      
-    } else {
-      const {email} = decodedToken
-      const user = await User.findOne({
+    if(err.name === "TokenExpiredError") {
+      const recievedToken = await UserVerification.findOne({
         where: {
-          email
+          email_confirmation: req.params.confirmationCode
         }
       })
-      if(!user) {
-        res.status(404).send({
-          status: 'Failed',
-          message: 'User not found'
-        })      
+      if(recievedToken) {
+        const decodedToken = jwt.decode(recievedToken.email_confirmation)
+        if(decodedToken) {
+          const {username, email, password, city, country, region, age} = decodedToken
+          const newToken = jwt.sign({username, email, password, city, country, region, age}, process.env.JWT_ACC_ACTIVATE, { expiresIn: "1d" })
+          if(newToken) {
+            await recievedToken.update({email_confirmation: newToken})
+            await sendConfirmationEmail(username, email, newToken)
+          }
+          res.status(401).send({
+            status: 'Failed',
+            message: 'Your token expired, a new confirmation email has been sent to you, please confirm it again'
+          })      
+        }
       } else {
-        await user.update({
-          confirmation_status: 'Active'
+        res.status(401).send({
+          status: 'Failed',
+          message: 'Unknown token, you have to register again.'
         })
-        res.status(200).send({
-          status: 'Success',
-          message: 'Email confirmed'
-        })
-      }
+      } 
+    } else {
+      console.log(err)
     }
-  } catch(err) {
-    next(err)
   }
 })
 
@@ -85,33 +104,31 @@ router.post('/reset-password', async (req, res, next) => {
         message: 'User not found'
       })    
     } else {
-      if (user.confirmation_status != "Active") {
-        throw createError(401, "Pending Account. Please Verify Your Email!")
-      }
-      const token = jwt.sign({email}, process.env.JWT_RESET_PASSWORD, { expiresIn: '1d' })
-      await user.update({confirmation_code: token})
-      await sendResetPasswordEmail(user.username, user.email, user.confirmation_code)
+      const token = jwt.sign({email}, process.env.JWT_RESET_PASSWORD, { expiresIn: "1d" })
+      await UserVerification.create({password_reset: token})
+      await sendResetPasswordEmail(user.username, user.email, token)
       res.status(200).send({
         status: 'Success',
         message: 'Password reset link sent',
       })      
     }
   } catch(err) {
-    next(err)
+    console.log(err)
   }
 
 })
 
 router.put('/reset-password/:confirmationCode', async (req, res, next) => {
   try {
-    const decodedToken = jwt.verify(req.params.confirmationCode, process.env.JWT_RESET_PASSWORD)
-    if(!decodedToken) {
-      res.status(401).send({
-        status: 'Failed',
-        message: 'Wrong or expired token'
-      })      
-    } else {
-      const {email} = decodedToken
+    const recievedToken = await UserVerification.findOne({
+      where: {
+        password_reset: req.params.confirmationCode
+      }
+    })
+    if(recievedToken) {
+      const verifiedToken = jwt.verify(req.params.confirmationCode, process.env.JWT_RESET_PASSWORD)
+      const {email} = verifiedToken
+      const {password} = req.body
       const user = await User.findOne({
         where: {
           email
@@ -123,15 +140,50 @@ router.put('/reset-password/:confirmationCode', async (req, res, next) => {
           message: 'User not found'
         })      
       } else {
-        await user.update(req.body)
+        await user.update({password})
+        UserVerification.destroy({where: {password_reset: req.params.confirmationCode}})
         res.status(200).send({
           status: 'Success',
           message: 'Password reset'
         })
       }
+    } else {
+      res.status(401).send({
+        status: 'Failed',
+        message: 'Unknown token, you have to reset the password again.'
+      })
     }
+    
   } catch(err) {
-    next(err)
+    if(err.name === "TokenExpiredError") {
+      const decodedToken = jwt.decode(recievedToken.password_reset)
+      if(decodedToken) {
+        const {email} = decodedToken
+        const user = await User.findOne({
+          where: {
+            email
+          }
+        })
+        if(user) {
+          const newToken = jwt.sign({email}, process.env.JWT_RESET_PASSWORD, { expiresIn: '1d' })
+          if(newToken) {
+            await recievedToken.update({password_reset: newToken})
+            await sendResetPasswordEmail(user.username, user.email, newToken)
+          }
+          res.status(401).send({
+            status: 'Failed',
+            message: 'Your token expired, a new reset password email has been sent to you.'
+          })
+        } else {
+          res.status(404).send({
+            status: 'Failed',
+            message: 'User not found'
+          })      
+        }    
+      }
+    } else {
+      console.log(err)
+    }
   }  
 })
 
@@ -154,37 +206,61 @@ router.get('/logout', checkAuthentication, (req, res, next) => {
       message: 'User logged out',
     })
   } catch(err) {
-    next(err)
+    console.log(err)
   }
 })
 
-
-
 router.get('/', checkAuthentication, async (req, res, next) => {
-  /* we will need something like this for more queries with filters
-  const makeSequelizeOptions = (query) => {
-    const options = {}
-    query.joinModel ? options.include = {model: req.query.joinModel} : null
-    query.joinModelLimit ? options.include.limit = req.query.joinModelLimit : null
-    query.model ? options.include.include = {model: req.query.model} : null
-    return options
-  }
-  */
+  req.query.onlyMatch && console.log('onlyMatch is true')
   try {
-    if(req.query.filter) {
-      const user = await User.findOne({
-        where: {
-          uuid: req.user.uuid
-        },
-      })
+    const options = {
+      include: [],
+      where: {
+        uuid: {
+          [Op.ne]: req.user.uuid
+        }
+      },
+      attributes: ['username', 'uuid', 'country', 'region', 'city', 'age']
+    }
+
+    const user = await User.findOne({
+      where: {
+        uuid: req.user.uuid
+      },
+    })
+    
+    if(req.query.country) {
+      options.where.country = user.country
+    }
+
+    if(req.query.city) {
+      options.where.city = user.city
+    }
+    
+    let whereForActivities
+    if(req.query.onlyMatch || req.query.activity) {
       const userActivities = await user.getActivities({
         joinTableAttributes: [],
         attributes: ['uuid']
       })
+      whereForActivities = userActivities.map(activity => activity.uuid)
+    }
+    
+    options.include.push({
+      model: Activity,
+      attributes: ['name', 'uuid'],
+      where: (req.query.activity || req.query.onlyMatch) && {uuid: whereForActivities},
+      through: {
+        attributes: []
+      }
+    })
+
+    let whereForAvailabilities
+    if(req.query.onlyMatch || req.query.availability) {
       const userAvailabilities = await user.getAvailabilities({
         attributes: ['day', 'start_time', 'end_time']
       })      
-      const whereForAvailabilities = userAvailabilities.map(availability => {
+      whereForAvailabilities = userAvailabilities.map(availability => {
         return {
           day: availability.day,
           start_time: {
@@ -195,84 +271,52 @@ router.get('/', checkAuthentication, async (req, res, next) => {
           }
         }
       })
-      const whereForActivities = userActivities.map(activity => activity.uuid)
-
-      const users = await User.findAll({
-        include: [{
-          model: UserActivity,
-          limit: 3,
-          attributes: ['activity_id'],
-          include: {
-            model: Activity,
-            attributes: ['name'],
-            where: {
-              uuid: whereForActivities
-            },
-          }
-        },{
-          model: Availability,
-          limit: 3,
-          attributes: ['day', 'start_time', 'end_time'],
-          where: {
-            [Op.or]: whereForAvailabilities
-          }
-        }],
-        where: {
-          uuid: {
-            [Op.ne]: req.user.uuid
-          }
-        },
-      })
-      const filteredUsers = users.filter(user => user.UserActivities.length > 0 && user.Availabilities.length > 0)
-      if(filteredUsers) {
-        res.status(200).send({
-          status: 'Success',
-          message: 'Users found',
-          data: filteredUsers
-        })
-      } else {
-        res.status(404).send({
-          status: 'Failed',
-          message: 'No users found'
-        })
-      }
-    } else {
-      const users = await User.findAll({
-        include: [{
-          model: UserActivity,
-          limit: 3,
-          attributes: ['activity_id'],
-          include: {
-            model: Activity,
-            attributes: ['name'],
-          }
-        },{
-          model: Availability,
-          limit: 3,
-          attributes: ['day', 'start_time', 'end_time'],
-        }],
-        where: {
-          uuid: {
-            [Op.ne]: req.user.uuid
-          }
-        },
-      })
-      if(users) {
-        res.status(200).send({
-          status: 'Success',
-          message: 'Users found',
-          data: users
-        })
-      } else {
-        res.status(404).send({
-          status: 'Failed',
-          message: 'No users found'
-        })
-      }
     }
 
+    options.include.push({
+      model: Availability,
+      attributes: ['day', 'start_time', 'end_time', 'uuid'],
+      where: (req.query.availability || req.query.onlyMatch) && {[Op.or]: whereForAvailabilities}
+    })
+    
+    const users = await User.findAll(options)
+    let filteredUsers
+    if(req.query.onlyMatch || (req.query.activity && req.query.availability) || (req.query.activity && req.query.availability && req.query.onlyMatch)) {
+      filteredUsers = users.filter(user => user.Activities.length > 0 && user.Availabilities.length > 0)
+    } else if(req.query.activity) {
+      filteredUsers = users.filter(user => user.Activities.length > 0)
+    } else if(req.query.availability) {
+      filteredUsers = users.filter(user => user.Availabilities.length > 0)
+    } else {
+      filteredUsers = users
+    }
+    
+    res.status(200).send({
+      data: filteredUsers
+    })
   } catch(err) {
-    next(err)
+    console.log(err)
+  }
+})
+
+router.get('/available', async (req, res, next) => {
+  try {
+    const usernameOrEmail = await User.findOne({
+        where: {
+          [req.query.column]: req.query.value
+        }
+      })    
+    if(!usernameOrEmail) {
+      res.status(200).send({
+        status: "Success",
+      })
+    } else {
+      res.status(200).send({
+        status: "Failed"
+      })
+    }
+  } catch(err) {
+    console.log(err)
   }
 })
 
@@ -296,7 +340,39 @@ router.get('/profile', checkAuthentication, async (req, res, next) => {
       })
     }
   } catch(err) {
-    next(err)
+    console.log(err)
+  }
+})
+
+router.get('/me', checkAuthentication, async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      where: {
+        uuid: req.user.uuid
+      },
+      include: [{
+        model: Availability,
+      },{
+        model: Activity,
+        through: {
+          attributes: []
+        }
+      }]
+    })
+    if(!user) {
+      res.status(404).send({
+        status: 'Failed',
+        message: 'User not found'
+      })
+    } else {
+      res.status(200).send({
+        status: 'Success',
+        message: 'User found',
+        data: user
+      })
+    }
+  } catch(err) {
+    console.log(err)
   }
 })
 
@@ -328,7 +404,7 @@ router.get('/:uuid', checkAuthentication, async (req, res, next) => {
       })
     }
   } catch(err) {
-    next(err)
+    console.log(err)
   }
 })
 
@@ -349,11 +425,10 @@ router.put('/profile', checkAuthentication, async (req, res, next) => {
       res.status(200).send({
         status: 'Success',
         message: 'User profile updated',
-        data: updateUser
       })
     }
   } catch(err) {
-    next(err)
+    console.log(err)
   }
 })
 
@@ -378,7 +453,7 @@ router.delete('/profile', checkAuthentication, async (req, res, next) => {
       })
     }
   } catch(err) {
-    next(err)
+    console.log(err)
   }
 })
 

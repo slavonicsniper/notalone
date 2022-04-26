@@ -1,8 +1,10 @@
 import React, {useEffect, useState} from 'react'
 import User from '../../services/User';
-import {Row, Col, Card, Container, ListGroup, Button, Modal, Placeholder, Stack, Form} from 'react-bootstrap'
+import {Row, Col, Card, Container, ListGroup, Button, Modal, Placeholder, Stack, Badge, Alert, ToastContainer, Toast, Tooltip, OverlayTrigger} from 'react-bootstrap'
+import SendMessage from './SendMessage';
+import userAvatar from './userAvatar.png'
 
-function MyVerticallyCenteredModal(props) {
+function UserCard(props) {
     return (
         <Modal
           show={props.show}
@@ -19,25 +21,29 @@ function MyVerticallyCenteredModal(props) {
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <Stack gap={4}>
-                    <div>
-                        <h6>City: {props.user.city}</h6>
-                        <h6>Country: {props.user.country}</h6>
-                        <h6>Age: {props.user.age}</h6>
-                    </div>
-                    <div>
-                        <h6>Activities</h6>
-                        <ListGroup horizontal={'md'}>
-                            {props.user.Activities.map(activity => <ListGroup.Item variant='info' key={activity.uuid}>{activity.name}</ListGroup.Item>)}
-                        </ListGroup>
-                    </div>
-                    <div>
-                        <h6>Availabilities</h6>
-                        <ListGroup horizontal={'md'}>
-                            {props.user.Availabilities.map(availability => <ListGroup.Item variant='info' key={availability.uuid}>{availability.day} {availability.start_time} - {availability.end_time}</ListGroup.Item>)}
-                        </ListGroup>
-                    </div>        
-                </Stack>
+                <ListGroup variant="flush">
+                    <ListGroup.Item variant="light">
+                        <strong>City:</strong> {props.user.city}
+                        <br/>
+                        <strong>Country:</strong> {props.user.country}
+                        <br/>
+                        <strong>Region:</strong> {props.user.region}
+                        <br/>
+                        <strong>Age:</strong> {new Date().getFullYear() - props.user.age}
+                    </ListGroup.Item>
+                    <ListGroup.Item variant="light">
+                        <strong>Interested in: </strong>
+                        <Stack className="mt-2"direction="horizontal" gap={2}>                           
+                            {props.user.Activities.map(activity => <Badge pill bg="primary" key={activity.uuid}>{activity.name}</Badge>)}
+                        </Stack>
+                    </ListGroup.Item>
+                    <ListGroup.Item variant="light">
+                        <strong>Available: </strong>    
+                        <Stack className="mt-2"direction="horizontal" gap={2}>                        
+                            {props.user.Availabilities.map(availability => <Badge pill bg="success" key={availability.uuid}>{availability.day} {availability.start_time} - {availability.end_time}</Badge>)}
+                        </Stack>
+                    </ListGroup.Item>
+                </ListGroup>
             </Modal.Body>
             <Modal.Footer>
                 <Button onClick={props.onHide}>Close</Button>
@@ -99,125 +105,305 @@ function MyVerticallyCenteredModal(props) {
     );
   }
 
-export default function Dashboard() {
-    const [users, setUsers] = useState([])
+
+
+export default function Dashboard(props) {
+    const [users, setUsers] = useState(null)
     const [clickedUser, setClickedUser] = useState(null)
-    const [uuid, setUuid] = useState('')
-    const [modalShow, setModalShow] = useState(false);
-    const [queryParams, setQueryParams] = useState('?filter=true')
-    const [filterCheck, setFilterCheck] = useState(true)
+    const [userCardShow, setUserCardShow] = useState(false);
+    const [sendMessageShow, setSendMessageShow] = useState(false);
+    const [queryParams, setQueryParams] = useState([])
+    const [onlyMatchedSwitch, setOnlyMatchedSwitch] = useState(false)
+    const [activitySwitch, setActivitySwitch] = useState(false)
+    const [availabilitySwitch, setAvailabilitySwitch] = useState(false)
+    const [countrySwitch, setCountrySwitch] = useState(false)
+    const [citySwitch, setCitySwitch] = useState(false)
+    const [message, setMessage] = useState(null)
+    const [username, setUsername] = useState('')
+    const [userUuid, setUserUuid] = useState('')
 
     const fetchUsers = async () => {
-        try {
-            const response = await User.getUsers(queryParams)
-            setUsers(response.data)
+        try {            
+            const response = await User.getUsers(queryParams.length > 0 ? '?' + queryParams.join('&') : '')
+            if(response.message === "Not authenticated") {
+                props.handleLogin(false)
+                window.localStorage.removeItem('data')
+            }
+            setUsers(response.data)            
         } catch(err) {
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 
-    const fetchClickedUser = async (uuid) => {
-        try {
-            console.log(uuid)
-            const response = await User.getUser(uuid)
-            setClickedUser(response.data)
-        } catch(err) {
-            console.log(err)
-        }
+    const handleShowMore = (user) => {
+        setUserCardShow(true)
+        setClickedUser(user)
     }
-
-    const handleShowMore = (e) => {
-        if(e.target.id !== uuid) {
-            setUuid(e.target.id)
-            fetchClickedUser(e.target.id)
-        }
-        setModalShow(true)
-    }
-
-    const handleFilterSwitch = () => {
-        setFilterCheck(!filterCheck);
-        setUsers([])
-      };
 
     useEffect(() => {
-        if(!filterCheck) {
-            setQueryParams('')
+        if(onlyMatchedSwitch) {
+            setQueryParams((prev) => [...prev, 'onlyMatch=true'])
         } else {
-            setQueryParams('?filter=true')
+            setQueryParams(queryParams.filter(param => param != 'onlyMatch=true'))
         }
-    }, [filterCheck])
+    }, [onlyMatchedSwitch])
+    
+    const onlyMatchedInfo = (props) => (
+        <Tooltip {...props}>
+          Show users that match at least one of your activities and one of your availability.
+        </Tooltip>
+    );
+
+    useEffect(() => {
+        if(activitySwitch) {
+            setQueryParams((prev) => [...prev, 'activity=true'])
+        } else {
+            setQueryParams(queryParams.filter(param => param != 'activity=true'))
+        }
+    }, [activitySwitch])
+
+    const activityInfo = (props) => (
+        <Tooltip {...props}>
+          Show users that match at least one of your activities.
+        </Tooltip>
+    );
+
+    useEffect(() => {
+        if(availabilitySwitch) {
+            setQueryParams((prev) => [...prev, 'availability=true'])
+        } else {
+            setQueryParams(queryParams.filter(param => param != 'availability=true'))
+        }
+    }, [availabilitySwitch])
+
+    const availabilityInfo = (props) => (
+        <Tooltip {...props}>
+          Show users that match at least one of your availability.
+        </Tooltip>
+    );
+
+    useEffect(() => {
+        if(countrySwitch) {
+            setQueryParams((prev) => [...prev, 'country=true'])
+        } else {
+            setQueryParams(queryParams.filter(param => param != 'country=true'))
+        }
+    }, [countrySwitch])
+
+    const countryInfo = (props) => (
+        <Tooltip {...props}>
+          Show users that match your country.
+        </Tooltip>
+    );
+
+    useEffect(() => {
+        if(citySwitch) {
+            setQueryParams((prev) => [...prev, 'city=true'])
+        } else {
+            setQueryParams(queryParams.filter(param => param != 'city=true'))
+        }
+    }, [citySwitch])
+
+    const cityInfo = (props) => (
+        <Tooltip {...props}>
+          Show users that match your city.
+        </Tooltip>
+    );
 
     useEffect(() => {
         fetchUsers()
     }, [queryParams])
 
+    const handleSendMessage = (username, userUuid) => {
+        setSendMessageShow(true)
+        setMessage(null)
+        setUsername(username)
+        setUserUuid(userUuid)
+    }
+
+    const [user, setUser] = useState(null)
+
+    const fetchUser = async () => {
+        try {
+            if(!user) {
+                const response = await User.getUser()
+                if(response.message === "Not authenticated") {
+                    props.handleLogin(false)
+                    window.localStorage.removeItem('data')
+                }
+                setUser(response.data)
+            }
+        } catch(err) {
+            console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
+        }
+    }
+
+    useEffect(() => {
+        fetchUser()
+    }, [])
+
+    const [showNotificationActivity, setShowNotificationActivity] = useState(true)
+    const [showNotificationAvailability, setShowNotificationAvailability] = useState(true)
+
     return (
         <Container>
-            <div className="form-check form-switch">
-              <input className="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked={filterCheck} onChange={handleFilterSwitch}/>
+        <ToastContainer position="bottom-end" className="p-3">
+            {user && user.Activities.length === 0 &&
+            <Toast show={showNotificationActivity} onClose={() => setShowNotificationActivity(!showNotificationActivity)}>
+                <Toast.Header>
+                    <strong className="me-auto">Notification</strong>
+                </Toast.Header>
+                <Toast.Body>Please set your activity.</Toast.Body>
+            </Toast>
+            }
+            {user && user.Availabilities.length === 0 &&
+            <Toast show={showNotificationAvailability} onClose={() => setShowNotificationAvailability(!showNotificationAvailability)}>
+                <Toast.Header>
+                    <strong className="me-auto">Notification</strong>
+                </Toast.Header>
+                <Toast.Body>Please set your availability.</Toast.Body>
+            </Toast>
+            }
+        </ToastContainer>
+            {message &&
+            <Alert variant={message.status === "Failed" ? "danger" : "success"}>
+                {message.message && message.message}
+            </Alert>}
+            <Stack direction="horizontal" gap={3} className="mt-3 mb-3">
+            <OverlayTrigger
+                placement="auto"
+                delay={{ show: 250, hide: 400 }}
+                overlay={onlyMatchedInfo}
+            >                
+            <div className="form-check form-switch ">
+              <input className="form-check-input" type="checkbox" role="switch"  checked={onlyMatchedSwitch} onChange={() => setOnlyMatchedSwitch(!onlyMatchedSwitch)} disabled={user && user.Activities.length > 0 && user.Availabilities.length > 0 ? false : true}/>
               <label className="form-check-label" htmlFor="flexSwitchCheckChecked">Only matched users</label>
-            </div>                   
-            <Row xs={1} sm={2} md={3} lg={4} xl={5} xxl={6} className="g-4">
-                {users.length > 0 ?
-                users.map((user) => (
-                    <Col key={user.uuid}>
-                      <Card>
-                        <Card.Body>
-                            <Stack gap={3}>
-                            <Card.Title>{user.username}</Card.Title>
-                            <div>
-                                <Card.Header>Activities</Card.Header>
-                                <Card.Text>
-                                    {user.UserActivities.map(activity => activity.Activity.name).join(', ')}
-                                </Card.Text>
-                            </div>
-                            <div>
-                                <Card.Header>Availabilities</Card.Header>
-                                <Card.Text>
-                                    {user.Availabilities.map(availability => `${availability.day} ${availability.start_time} - ${availability.end_time}`).join(', ')}
-                                </Card.Text>
-                            </div>
-                            <div>
-                                <Button id={user.uuid} variant="primary" onClick={handleShowMore}>
-                                  Show more
-                                </Button>
-                            </div>
-                            </Stack>
-                            <MyVerticallyCenteredModal
-                              user={clickedUser}
-                              show={modalShow}
-                              onHide={() => setModalShow(false)}
-                            />                        
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                ))
+            </div>
+            </OverlayTrigger>
+            <OverlayTrigger
+                placement="auto"
+                delay={{ show: 250, hide: 400 }}
+                overlay={activityInfo}
+            >
+            <div className="form-check form-switch ">
+              <input className="form-check-input" type="checkbox" role="switch"  checked={activitySwitch} onChange={() => setActivitySwitch(!activitySwitch)} disabled={user && user.Activities.length > 0 ? false : true}/>
+              <label className="form-check-label" htmlFor="flexSwitchCheckChecked">Activity</label>
+            </div>
+            </OverlayTrigger>
+            <OverlayTrigger
+                placement="auto"
+                delay={{ show: 250, hide: 400 }}
+                overlay={availabilityInfo}
+            >
+            <div className="form-check form-switch ">
+              <input className="form-check-input" type="checkbox" role="switch"  checked={availabilitySwitch} onChange={() => setAvailabilitySwitch(!availabilitySwitch)} disabled={user && user.Availabilities.length > 0 ? false : true}/>
+              <label className="form-check-label" htmlFor="flexSwitchCheckChecked">Availability</label>
+            </div>
+            </OverlayTrigger>
+            <OverlayTrigger
+                placement="auto"
+                delay={{ show: 250, hide: 400 }}
+                overlay={countryInfo}
+            >
+            <div className="form-check form-switch ">
+              <input className="form-check-input" type="checkbox" role="switch"  checked={countrySwitch} onChange={() => setCountrySwitch(!countrySwitch)} disabled={user && user.country ? false : true}/>
+              <label className="form-check-label" htmlFor="flexSwitchCheckChecked">Country</label>
+            </div>
+            </OverlayTrigger>
+            <OverlayTrigger
+                placement="auto"
+                delay={{ show: 250, hide: 400 }}
+                overlay={cityInfo}
+            >
+            <div className="form-check form-switch ">
+              <input className="form-check-input" type="checkbox" role="switch"  checked={citySwitch} onChange={() => setCitySwitch(!citySwitch)} disabled={user && user.city ? false : true}/>
+              <label className="form-check-label" htmlFor="flexSwitchCheckChecked">City</label>
+            </div>
+            </OverlayTrigger>
+            </Stack>                   
+            {
+                users ?
+                    users.length > 0 ?
+                        <Row xs={1} sm={2} md={3} lg={4} xl={5} className="g-4">
+                            {users.map((user) => 
+                                <Col key={user.uuid}>
+                                  <Card>
+                                    <Card.Img variant="top" src={userAvatar} />
+                                    <Card.Body>
+                                        <Card.Title>{user.username}</Card.Title>
+                                        <Card.Text>
+                                            Here will go some description about the user.
+                                        </Card.Text>
+                                    </Card.Body>
+                                    <ListGroup className="list-group-flush">
+                                        <ListGroup.Item className="text-truncate">                        
+                                            <small className="text-muted">{user.Activities.length > 0 ? user.Activities.map(activity => activity.name).join(', ') : 'Undefined'}</small>
+                                        </ListGroup.Item>
+                                        <ListGroup.Item className="text-truncate">
+                                        <small className="text-muted">{user.Availabilities.length > 0 ? user.Availabilities.map(availability => `${availability.day} ${availability. start_time} - ${availability.end_time}`).join(', ') : 'Undefined'}</small>
+                                        </ListGroup.Item>
+                                    </ListGroup>
+                                    <Card.Body>
+                                        <Stack gap={1}>
+                                            <Button variant="outline-secondary" onClick={() => {handleShowMore(user)}} size="sm">
+                                              Show more
+                                            </Button>
+                                            <Button variant="primary" onClick={() => {handleSendMessage(user.username, user.uuid)}} size="sm">
+                                              Send message
+                                            </Button>
+                                        </Stack>
+                                    </Card.Body>
+                                  </Card>
+                                </Col>
+                            )}
+                        </Row>
+                    :      
+                    <Alert variant="info">
+                        No matched users found for now. Stay patient, there might be one tomorrow!
+                    </Alert>
                 :
-                    <Col>
-                      <Card>
-                        <Card.Body>
-                            <Placeholder as={Card.Title} animation="glow">
-                                <Placeholder xs={6}/>
-                            </Placeholder>
-                            <Placeholder as={Card.Header} animation="glow">
-                                <Placeholder xs={8}/>
-                            </Placeholder>
-                            <Placeholder as={Card.Text} animation="glow">
-                                <Placeholder xs={12}/>
-                            </Placeholder>
-                            <Placeholder as={Card.Header} animation="glow">
-                                <Placeholder xs={8}/>
-                            </Placeholder>
-                            <Placeholder as={Card.Text} animation="glow">
-                                <Placeholder xs={12}/>
-                            </Placeholder>
-                            <Placeholder.Button xs={6} variant="primary"/>                        
-                        </Card.Body>
-                      </Card>                  
-                    </Col>
-                }
-                
-            </Row>
+                <Row xs={1} sm={2} md={3} lg={4} xl={5} className="g-4">
+                    {Array.from({ length: 5 }).map((_, idx) => (
+                        <Col key={idx}>
+                          <Card>
+                            <Card.Img variant="top" src={userAvatar} />
+                            <Card.Body>
+                                <Placeholder as={Card.Title} animation="glow">
+                                    <Placeholder xs={6}/>
+                                </Placeholder>
+                                <Placeholder as={Card.Text} animation="glow">
+                                    <Placeholder xs={7} /> <Placeholder xs={4} /> <Placeholder                          xs={4} />{' '}
+                                    <Placeholder xs={6} /> <Placeholder xs={8} />
+                                </Placeholder>
+                                <Placeholder as={Card.Text} animation="glow">
+                                    <Placeholder xs={12}/>
+                                </Placeholder>       
+                                <Placeholder as={Card.Text} animation="glow">
+                                    <Placeholder xs={12}/>
+                                </Placeholder>
+                                <Placeholder.Button xs={6} variant="outline-secondary"/>
+                                <Placeholder.Button xs={6} variant="primary"/>                        
+                            </Card.Body>
+                          </Card>                  
+                        </Col>
+                    ))}                
+                </Row>
+            }
+            <UserCard
+                user={clickedUser}
+                show={userCardShow}
+                onHide={() => setUserCardShow(false)}
+            />
+            <SendMessage
+                username={username}
+                userUuid={userUuid}
+                show={sendMessageShow}
+                onHide={() => setSendMessageShow(false)}
+                setMessage={setMessage}
+                setSendMessageShow={setSendMessageShow}
+            />            
         </Container>
     )
 }

@@ -13,6 +13,10 @@ const login = async (data) => {
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
@@ -30,6 +34,10 @@ const logout = async () => {
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
@@ -47,6 +55,10 @@ const register = async (data) => {
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
@@ -58,11 +70,15 @@ const verifyUser = async (code) => {
         },
     };
     try {
-        const response = await fetch(process.env.REACT_APP_API_URL + '/users/confirm' + code, requestOptions)
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/confirm/' + code, requestOptions)
         const json = await response.json();
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 };
 
@@ -75,11 +91,15 @@ const initializePasswordReset = async (data) => {
         body: JSON.stringify(data),
     };
     try {
-        const response = await fetch(process.env.REACT_APP_API_URL + '/users/reset-password', requestOptions)
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/reset-password/', requestOptions)
         const json = await response.json();
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
@@ -92,14 +112,37 @@ const verifyPasswordReset = async (code, body) => {
         body: JSON.stringify(body),
     };
     try {
-        const response = await fetch(process.env.REACT_APP_API_URL + '/users/reset-password' + code, requestOptions)
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/reset-password/' + code, requestOptions)
         const json = await response.json();
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 };
 
+const checkAvailableUsernameOrEmail = async (queryParams) => {
+    const requestOptions = {
+        method: 'GET',
+        headers: { 
+            'Content-Type': 'application/json',
+        },
+    };
+    try {
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/available' + queryParams, requestOptions)
+        const json = await response.json();
+        return json;
+    } catch(err) {
+        console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
+    }
+}
 
 export default {
   login,
@@ -107,5 +150,6 @@ export default {
   register,
   verifyUser,
   initializePasswordReset,
-  verifyPasswordReset
+  verifyPasswordReset,
+  checkAvailableUsernameOrEmail,
 }

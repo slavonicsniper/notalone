@@ -30,6 +30,14 @@ module.exports = (sequelize, DataTypes) => {
         //as: 'groups',
         foreignKey: 'user_id'
       })
+      User.hasMany(models.InboxMessage, {
+        foreignKey: 'from', 
+        as: 'sent'
+      })
+      User.hasMany(models.InboxMessage, {
+        foreignKey: 'to', 
+        as: 'received'
+      })
     }
 
     toJSON() {
@@ -50,18 +58,8 @@ module.exports = (sequelize, DataTypes) => {
     email: DataTypes.STRING,
     city: DataTypes.STRING,
     country: DataTypes.STRING,
+    region: DataTypes.STRING,
     age: DataTypes.INTEGER,
-    confirmation_status: {
-      type: DataTypes.STRING,
-      defaultValue: 'Pending',
-      validate: {
-        isIn: [['Pending', 'Active']]
-      }
-    },
-    confirmation_code: {
-      type: DataTypes.STRING,
-      unique: true
-    }
   }, {
     sequelize,
     modelName: 'User',

@@ -3,11 +3,11 @@ import {Stack, Form, Button, Alert} from 'react-bootstrap'
 import Availability from '../../services/Availability';
 import AddAvailabilityList from './AddAvailabilityList';
 
-export default function AddAvailabilityForm() {
+export default function AddAvailabilityForm(props) {
     const [defaultTimeArr, setDedaultTimeArr] = useState([])
     const [startTimeArr, setStartTimeArr] = useState([])
     const [endTimeArr, setEndTimeArr] = useState([])
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturaday', 'Sunday']
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     const [startTime, setStartTime] = useState('00:00')
     const [endTime, setEndTime] = useState('00:30')
     const [day, setDay] = useState('Monday')
@@ -16,6 +16,7 @@ export default function AddAvailabilityForm() {
     const [fetchedUserAvailabilities, setFetchedUserAvailabilities] = useState([])
     const [fetchedUserAvailabilitiesToDisplay, setFetchedUserAvailabilitiesToDisplay] = useState([])
     const [availabilitiesToDelete, setAvailabilitiesToDelete] = useState([])
+    const [loading, setLoading] = useState(true)
 
     const renderAvailableTimeArray = () => {
         let arr = []
@@ -78,13 +79,19 @@ export default function AddAvailabilityForm() {
         try {
             if(fetchedUserAvailabilities.length === 0) {
                 const response = await Availability.fetchUserAvailabilities()
+                if(response.message === "Not authenticated") {
+                    props.handleLogin(false)
+                    window.localStorage.removeItem('data')
+                }
                 if(response.status === 'Success') {
                     setFetchedUserAvailabilities(response.data)
                     setFetchedUserAvailabilitiesToDisplay(response.data)
                 }
+                setLoading(false)           
             }
         } catch(err) {
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 
@@ -95,43 +102,54 @@ export default function AddAvailabilityForm() {
         setDay('Monday')
         setStartTime('00:00')
         setEndTime('00:30')
-        setMessage('')
+        setMessage(null)
     }
 
     useEffect(() => {
         getFetchedUserAvailabilities()
     }, [fetchedUserAvailabilities])
 
+    useEffect(() => {
+        if(fetchedUserAvailabilities.length === 0 && !loading) {
+            setMessage({status: "Info", message: "In order to be visible for other users you need to add at least one availability."})
+        } else {
+            setMessage(null)
+        }
+    }, [loading])
+
     const saveAvailabilities = async () => {
-        setMessage(null)
-        let response = {}
         try {
-            response = await Availability.saveAvailabilities(newAvailabilities)
+            const response = await Availability.saveAvailabilities(newAvailabilities)
+            if(response.message === "Not authenticated") {
+                props.handleLogin(false)
+                window.localStorage.removeItem('data')
+            }
             if(response.status === "Success") {
-                setMessage(response)
                 setNewAvailabilities([])
                 setFetchedUserAvailabilities([])
             }
+            setMessage(response)
         } catch(err) {
-            setMessage({status: "Failed", message: response.error})
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 
     const deleteAvailabilities = async () => {
-        console.log(availabilitiesToDelete)
-        setMessage(null)
-        let response = {}
         try {
-            response = await Availability.deleteAvailabilities({deleteAvailabilities: availabilitiesToDelete})
-            if(response.status === "Success") {
-                setMessage(response)
+            const response = await Availability.deleteAvailabilities({deleteAvailabilities: availabilitiesToDelete})
+            if(response.message === "Not authenticated") {
+                props.handleLogin(false)
+                window.localStorage.removeItem('data')
+            }
+            if(response.status === "Success") {                
                 setAvailabilitiesToDelete([])
                 setFetchedUserAvailabilities(fetchedUserAvailabilitiesToDisplay)
             }
-        } catch(err) {
-            setMessage({status: "Failed", message: response.error})
+            setMessage(response)
+        } catch(err) {            
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 
@@ -140,7 +158,7 @@ export default function AddAvailabilityForm() {
     return (
         <>
         {message &&
-        <Alert variant={message.status === "Failed" ? "danger" : "success"}>
+        <Alert variant={(message.status === "Failed" && "danger") || (message.status === "Success" && "success") || (message.status === "Info" && "info")}>
             {message.message && message.message}
         </Alert>
         }

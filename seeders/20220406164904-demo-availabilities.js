@@ -21,9 +21,9 @@ module.exports = {
       updatedAt: new Date()
     },{
       uuid: uuidv4(),
-      day: 'Wednesday',
-      start_time: '05:00',
-      end_time: '06:00',
+      day: 'Tuesday',
+      start_time: '03:00',
+      end_time: '04:00',
       user_id: 2,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -37,9 +37,9 @@ module.exports = {
       updatedAt: new Date()
     },{
       uuid: uuidv4(),
-      day: 'Friday',
-      start_time: '09:00',
-      end_time: '10:00',
+      day: 'Thursday',
+      start_time: '07:00',
+      end_time: '08:00',
       user_id: 3,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -53,9 +53,9 @@ module.exports = {
       updatedAt: new Date()
     },{
       uuid: uuidv4(),
-      day: 'Sunday',
-      start_time: '13:00',
-      end_time: '14:00',
+      day: 'Saturday',
+      start_time: '11:00',
+      end_time: '12:00',
       user_id: 4,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -69,9 +69,9 @@ module.exports = {
       updatedAt: new Date()
     },{
       uuid: uuidv4(),
-      day: 'Tuesday',
-      start_time: '17:00',
-      end_time: '18:00',
+      day: 'Monday',
+      start_time: '15:00',
+      end_time: '16:00',
       user_id: 5,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -85,9 +85,9 @@ module.exports = {
       updatedAt: new Date()
     },{
       uuid: uuidv4(),
-      day: 'Thursday',
-      start_time: '21:00',
-      end_time: '22:00',
+      day: 'Wednesday',
+      start_time: '19:00',
+      end_time: '20:00',
       user_id: 6,
       createdAt: new Date(),
       updatedAt: new Date()

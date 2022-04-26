@@ -2,8 +2,10 @@ import React, {useEffect, useState} from 'react'
 import {Stack, Form, Button, Alert} from 'react-bootstrap'
 import Activity from '../../services/Activity';
 import AddActivityList from './AddActivityList';
+import {Formik} from 'formik'
+import * as yup from 'yup';
 
-export default function AddActivityForm() {
+export default function AddActivityForm(props) {
     const [fetchedActivities, setFetchedActivities] = useState([])
     const [activityExist, setActivityExist] = useState('')
     const [activityTypeExist, setActivityTypeExist] = useState('')
@@ -16,17 +18,36 @@ export default function AddActivityForm() {
     const [fetchedUserActivities, setFetchedUserActivities] = useState([])
     const [fetchedUserActivitiesToDisplay, setFetchedUserActivitiesToDisplay] = useState([])
     const [activitiesToDelete, setActivitiesToDelete] = useState([])
+    const [loading, setLoading] = useState(true)
+
+    const schema = yup.object().shape({
+        activity: yup.string()
+            .required("Required")
+            .trim("Leading or trailing whitespace")
+            .strict()
+            .matches(/[A-Za-z ]/, "Only English letters"),
+        activityType: !activityTypeExist && yup.string()
+            .required("Required")
+            .trim("Leading or trailing whitespace")
+            .strict()        
+            .matches(/^[A-Za-z]+$/, "Only English letters"),
+      });
 
     const getFetchedActivities = async () => {
         try {
             if(fetchedActivities.length === 0) {
                 const response = await Activity.fetchActivities()
+                if(response.message === "Not authenticated") {
+                    props.handleLogin(false)
+                    window.localStorage.removeItem('data')
+                }
                 if(response.status === 'Success') {
                     setFetchedActivities(response.data)
                 }
             }
         } catch(err) {
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 
@@ -34,17 +55,23 @@ export default function AddActivityForm() {
         try {
             if(fetchedUserActivities.length === 0) {
                 const response = await Activity.fetchUserActivities()
+                if(response.message === "Not authenticated") {
+                    props.handleLogin(false)
+                    window.localStorage.removeItem('data')
+                }
                 if(response.status === 'Success') {
                     setFetchedUserActivities(response.data)
                     setFetchedUserActivitiesToDisplay(response.data)
                 }
+                setLoading(false)
             }
         } catch(err) {
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 
-    const handleReset = () => {
+    const handleResetCustom = () => {
         setFetchedUserActivitiesToDisplay(fetchedUserActivities)
         setActivitiesToDelete([])
         setExistingActivities([])
@@ -59,10 +86,19 @@ export default function AddActivityForm() {
 
     useEffect(() => {
         getFetchedUserActivities()
+        
     }, [fetchedUserActivities])
 
+    useEffect(() => {
+        if(fetchedUserActivities.length === 0 && !loading) {
+            setMessage({status: "Info", message: "In order to be visible for other users you need to add at least one activity."})
+        } else {
+            setMessage(null)
+        }
+    }, [loading])
+
     const handleChangeActivity = e => {
-        const foundActivity = fetchedActivities.filter(activity => activity.name === e.target.value)
+        const foundActivity = fetchedActivities.filter(activity => activity.name === e.target.value.toLowerCase())
         setActivityTypeExist('')
         if(foundActivity.length > 0) {
             setActivityTypeExist(foundActivity[0].type)
@@ -70,14 +106,14 @@ export default function AddActivityForm() {
             setActivityTypeDisable(true)
         } else {
             setActivityTypeDisable(false)
-            setActivityNew(e.target.value)
+            setActivityNew(e.target.value.toLowerCase())
         }
     }
 
     const addActivities = () => {
         setMessage(null)
         if(activityTypeExist) {
-            if(existingActivities.find(activity => activity.name === activityExist && activity.type === activityTypeExist)) {
+            if(existingActivities.find(activity => activity.name === activityExist && activity.type === activityTypeExist) || fetchedUserActivities.find(activity => activity.name === activityExist && activity.type === activityTypeExist)) {
                 setMessage({status: "Failed", message: 'Activity already added'})
             } else {
                 setExistingActivities(prev => [...prev, {name: activityExist, type: activityTypeExist}])
@@ -103,57 +139,121 @@ export default function AddActivityForm() {
     }
 
     const saveActivities = async () => {
-        setMessage(null)
-        let response = {}
         try {
-            response = await Activity.saveActivities({existingActivities, newActivities})
-            if(response.status === "Success") {
-                setMessage(response)
+            const response = await Activity.saveActivities({existingActivities, newActivities})
+            if(response.message === "Not authenticated") {
+                props.handleLogin(false)
+                window.localStorage.removeItem('data')
+            }
+            if(response.status === "Success") {                
                 setExistingActivities([])
                 setNewActivities([])
                 setFetchedUserActivities([])
             }
+            setMessage(response)
         } catch(err) {
-            setMessage({status: "Failed", message: response.error})
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
 
     const deleteActivities = async () => {
-        setMessage(null)
-        let response = {}
         try {
-            response = await Activity.deleteActivities({deleteActivities: activitiesToDelete})
-            if(response.status === "Success") {
-                setMessage(response)
+            const response = await Activity.deleteActivities({deleteActivities: activitiesToDelete})
+            if(response.message === "Not authenticated") {
+                props.handleLogin(false)
+                window.localStorage.removeItem('data')
+            }
+            if(response.status === "Success") {                
                 setActivitiesToDelete([])
                 setFetchedUserActivities(fetchedUserActivitiesToDisplay)
             }
+            setMessage(response)
         } catch(err) {
-            setMessage({status: "Failed", message: response.error})
             console.log(err)
+            setMessage({status: "Failed", message: "Something went wrong!"})
         }
     }
-
-
 
     return (
         <>
         {message &&
-        <Alert variant={message.status === "Failed" ? "danger" : "success"}>
+        <Alert variant={(message.status === "Failed" && "danger") || (message.status === "Success" && "success") || (message.status === "Info" && "info")}>
             {message.message && message.message}
         </Alert>
         }
+        <Formik
+        validationSchema={schema}        
+        onSubmit={addActivities}
+        initialValues={{
+            activity: '',
+            activityType: ''
+        }}
+        >
+        {({
+          handleSubmit,
+          handleChange,
+          handleBlur,
+          handleReset,
+          values,
+          touched,
+          errors,
+          isSubmitting,
+          dirty
+        }) => (
+        <Form onSubmit={handleSubmit}>
         <Stack direction="horizontal" gap={3}>
-            <input className="form-control me-auto" list="datalistOptions" id="exampleDataList" placeholder="Search or add an activity" onClick={getFetchedActivities} onChange={handleChangeActivity}/>
+            <input 
+            className={
+                touched.activity && errors.activity 
+                    ? "form-control me-auto is-invalid"
+                    : touched.activity && !errors.activity
+                        ? "form-control me-auto is-valid"
+                        : "form-control me-auto"
+            }
+            list="datalistOptions" 
+            id="exampleDataList" 
+            placeholder="Search or add an activity"
+            name="activity"
+            value={values.activity}
+            onClick={getFetchedActivities} 
+            onChange={e => {
+                handleChange(e)
+                handleChangeActivity(e)}}
+            onBlur={handleBlur}
+            />
             <datalist id="datalistOptions">
                 {fetchedActivities.map(fetchedActivity => <option key={fetchedActivity.name} value={fetchedActivity.name}/>)}
-            </datalist>            
-            <Form.Control placeholder="Type" value={activityTypeExist ? activityTypeExist : activityTypeNew} onChange={e => setActivityTypeNew(e.target.value)} disabled={activityTypeDisable}/>
-            <Button variant="secondary" onClick={addActivities}>Add</Button>
+            </datalist>
+            {touched.activity && errors.activity && (
+              <div className="invalid-feedback">{errors.activity}</div>
+            )}
+            <Form.Control 
+            placeholder="Type"
+            name="activityType"
+            value={activityTypeExist ? activityTypeExist : values.activityType} 
+            onChange={e => {
+                handleChange(e)
+                setActivityTypeNew(e.target.value.toLowerCase())}}
+            onBlur={handleBlur}
+            isInvalid={touched.activityType && errors.activityType}
+            isValid={touched.activityType && !errors.activityType || activityTypeExist && !errors.activityType}
+            disabled={activityTypeDisable}/>
+            {touched.activityType && errors.activityType && (
+              <div className="invalid-feedback">{errors.activityType}</div>
+            )}
+            <Button type="submit" variant="secondary">Add</Button>
             <div className="vr" />
-            <Button variant="outline-danger" onClick={handleReset}>Reset</Button>            
+            <Button 
+            variant="outline-danger" 
+            onClick={() => {
+                handleReset()
+                handleResetCustom()}} 
+            >Reset</Button>            
         </Stack>
+        </Form>
+        )}
+        </Formik>        
         <h6>Existing activities</h6>
         {fetchedUserActivitiesToDisplay.map(activity => <AddActivityList key={activity.name} activity={activity} deleteActivity={deleteActivity}/>)}
         {activitiesToDelete.length > 0 && <Button variant="primary" onClick={deleteActivities} className="col-md-3 mx-auto">Delete</Button>}
@@ -161,6 +261,7 @@ export default function AddActivityForm() {
         {existingActivities.map(activity => <AddActivityList key={activity.name} activity={activity} removeActivity={removeActivity}/>)}
         {newActivities.map(activity => <AddActivityList key={activity.name} activity={activity} removeActivity={removeActivity}/>)}
         {existingActivities.length > 0 ? <Button variant="primary" onClick={saveActivities} className="col-md-3 mx-auto">Save</Button> : newActivities.length > 0 ? <Button variant="primary" onClick={saveActivities} className="col-md-3 mx-auto">Save</Button> : null}
+
         </>
     )
 }

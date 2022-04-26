@@ -8,17 +8,18 @@ const getUsers = async (queryParams) => {
     };
     try {
         const response = await fetch(process.env.REACT_APP_API_URL + '/users' + queryParams, requestOptions)
-        if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
-          }
         const json = await response.json();
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
-const getUser = async (uuid) => {
+const getUser = async () => {
     const requestOptions = {
         method: 'GET',
         headers: { 
@@ -27,14 +28,15 @@ const getUser = async (uuid) => {
         credentials: 'include',
     };
     try {
-        const response = await fetch(process.env.REACT_APP_API_URL + '/users/' + uuid, requestOptions)
-        if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
-          }
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/me', requestOptions)
         const json = await response.json();
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
@@ -48,13 +50,14 @@ const getProfile = async () => {
     };
     try {
         const response = await fetch(process.env.REACT_APP_API_URL + '/users/profile', requestOptions)
-        if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
-          }
         const json = await response.json();
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
@@ -70,13 +73,35 @@ const updateProfile = async (data) => {
     };
     try {
         const response = await fetch(process.env.REACT_APP_API_URL + '/users/profile', requestOptions)
-        if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
-          }
         const json = await response.json();
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
+    }
+}
+
+const deleteProfile = async () => {
+    const requestOptions = {
+        method: 'DELETE',
+        headers: { 
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+    };
+    try {
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/profile', requestOptions)
+        const json = await response.json();
+        return json;
+    } catch(err) {
+        console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
@@ -85,4 +110,5 @@ export default {
     getUser,
     getProfile,
     updateProfile,
+    deleteProfile
 }

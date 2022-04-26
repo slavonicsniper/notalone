@@ -12,6 +12,10 @@ const fetchActivities = async () => {
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
@@ -29,6 +33,10 @@ const fetchUserActivities = async () => {
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
@@ -47,6 +55,10 @@ const saveActivities = async (data) => {
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 
@@ -65,6 +77,10 @@ const deleteActivities = async (data) => {
         return json;
     } catch(err) {
         console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
     }
 }
 

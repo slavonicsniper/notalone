@@ -5,7 +5,7 @@ import {Container, Navbar, Nav} from 'react-bootstrap'
 function Navigation(props) {
 
   return (
-    <Navbar collapseOnSelect expand="md" bg="dark" variant="dark" className="mb-3">
+    <Navbar collapseOnSelect expand="md" bg="dark" variant="dark">
       <Container fluid="xxl">
         <Navbar.Brand href="/">
           <img
@@ -23,6 +23,7 @@ function Navigation(props) {
             {props.loggedIn ?
             <>
               <Nav className="me-auto">
+                <Nav.Link href="/inbox">Inbox</Nav.Link>
                 <Nav.Link href="/activities">Activities</Nav.Link>
                 <Nav.Link href="/availabilities">Availabilities</Nav.Link>
               </Nav>

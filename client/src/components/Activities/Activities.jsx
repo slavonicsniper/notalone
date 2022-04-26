@@ -4,7 +4,7 @@ import AddActivityForm from './AddActivityForm';
 
 export default function Activities() {
     return (
-        <Container>
+        <Container className="mt-3">
             <Stack gap={3}>
                 <AddActivityForm/>
             </Stack>
