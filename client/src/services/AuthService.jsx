@@ -144,6 +144,27 @@ const checkAvailableUsernameOrEmail = async (queryParams) => {
     }
 }
 
+const checkAuth = async () => {
+    const requestOptions = {
+        method: 'GET',
+        headers: { 
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+    };
+    try {
+        const response = await fetch(process.env.REACT_APP_API_URL + '/users/login/success', requestOptions)
+        const json = await response.json();
+        return json;
+    } catch(err) {
+        console.error(err);
+        return {
+            status: "Failed",
+            message: "Something went wrong!"
+        }
+    }
+}
+
 export default {
   login,
   logout,
@@ -152,4 +173,5 @@ export default {
   initializePasswordReset,
   verifyPasswordReset,
   checkAvailableUsernameOrEmail,
+  checkAuth
 }

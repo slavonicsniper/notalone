@@ -12,12 +12,31 @@ import Logout from './components/Logout/Logout'
 import Activities from './components/Activities/Activities';
 import Availabilities from './components/Availability/Availabilities';
 import Inbox from './components/Inbox/Inbox';
+import AuthService from './services/AuthService';
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(JSON.parse(window.localStorage.getItem('loggedIn')))
   const [data, setData] = useState(JSON.parse(window.localStorage.getItem('data')))
 
+  const checkAuth = async () => {
+    try {
+        if(!loggedIn) {
+            const response = await AuthService.checkAuth()
+            if(response.status === 'Success'){
+              setData(response.data)
+              setLoggedIn(true)
+            } else {
+              window.localStorage.removeItem('data')
+              setLoggedIn(false)
+            }
+        }            
+    } catch(err) {
+        console.log(err)
+    }
+  }
+
   useEffect(() => {
+    checkAuth()
     setLoggedIn(JSON.parse(window.localStorage.getItem('loggedIn')));
     setData(JSON.parse(window.localStorage.getItem('data')));
   }, []);
