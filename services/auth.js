@@ -1,6 +1,7 @@
 const createError = require('http-errors')
 const LocalStrategy = require('passport-local');
-const {User} = require('../models')
+const FacebookStrategy = require('passport-facebook');
+const {User, FederatedUser} = require('../models');
 
 const checkAuthentication = (req, res, next) => {
   if(req.isAuthenticated()) {
@@ -57,7 +58,32 @@ const initPassport = passport => {
     } catch(err) {
       return done(err)
     }
-  }))  
+  }))
+  passport.use(new FacebookStrategy({
+    clientID: process.env.FACEBOOK_CLIENT_ID,
+    clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+    callbackURL: process.env.BACKEND_URL + '/users/login/facebook/callback',
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      const federatedUser = await FederatedUser.findOne({where: {
+        provider: profile.provider,
+        subject: profile.id
+      }})
+      if(federatedUser) {
+        const user = await User.findOne({where: {
+          id: federatedUser.user_id
+        }})
+        return done(null, user);  
+      } else {
+        const username = profile.displayName.toLowerCase().split(' ').join('') + Math.floor(Math.random() * 100)
+        const user = await User.create({username, email: '', password: '', city: '', country: '', age: ''})
+        await FederatedUser.create({provider: profile.provider, subject: profile.id, user_id: user.id})
+        return done(null, user);
+      }
+    } catch(err) {
+      return done(err)
+    }
+  }));
   passport.serializeUser(function(user, done) {
       return done(null, {username: user.username, uuid: user.uuid});
   });  
