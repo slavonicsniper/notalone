@@ -260,6 +260,35 @@ router.put('/reset-password/:confirmationCode', async (req, res, next) => {
   }
 })
 
+router.get('/login/success', checkAuthentication, (req, res, next) => {
+  res.status(200).send({
+    status: 'Success',
+    message: 'Authenticated',
+    data: {
+      username: req.user.username,
+      uuid: req.user.uuid
+    }
+  })
+})
+
+router.post('/login', passport.authenticate('local'), (req, res,) => {
+  res.status(200).send({
+    status: 'Success',
+    message: 'Authenticated',
+    data: {
+      username: req.user.username,
+      uuid: req.user.uuid
+    }
+  })
+})
+
+router.get('/login/facebook', passport.authenticate('facebook'))
+
+router.get('/login/facebook/callback', passport.authenticate('facebook', {
+  successRedirect: process.env.CLIENT_URL,
+  failureRedirect: process.env.CLIENT_URL + '/login',
+}))
+
 // Logs out the user
 router.get('/logout', checkAuthentication, (req, res, next) => {
 

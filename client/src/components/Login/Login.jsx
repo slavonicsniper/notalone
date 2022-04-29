@@ -89,7 +89,10 @@ function Login({handleLogin, handleData}) {
             <Button className="w-100" type="submit" disabled={isSubmitting}>
                 Login
             </Button>
-            <Link className="d-block mt-3 btn btn-secondary" to="/reset-password">Reset password</Link>  
+            <Link className="d-block mt-3 btn btn-secondary" to="/reset-password">Reset password</Link>
+            <Button className="w-100 mt-3" href={process.env.REACT_APP_API_URL + '/users/login/facebook'}>
+              Login via Facebook
+            </Button>
           </Form>        
         </div>
       </Container>
