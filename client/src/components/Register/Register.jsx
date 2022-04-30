@@ -27,7 +27,9 @@ const schema = yup.object().shape({
     .required()
     .oneOf([yup.ref('password')], 'Passwords do not match'),
   city: yup.string()
-    .matches(/^[A-Za-z]+$/, "Only English letters"),
+    .trim("Leading or trailing whitespace")
+    .strict()
+    .matches(/^[A-Za-z ]+$/, "Only English letters"),
   age: yup.string()
     .length(4, "Invalid year")
     .test("age", "Sorry but you are too old.", (age) =>  !age || age > 1942)
