@@ -7,8 +7,7 @@ import * as yup from 'yup';
 
 const schema = yup.object().shape({
   email: yup.string()
-    .required()
-    .email(),
+    .required(),
   password: yup.string()
     .required()
 });
@@ -58,10 +57,10 @@ function Login({handleLogin, handleData}) {
         <div className="d-flex vh-100 justify-content-center align-items-center">
           <Form noValidate onSubmit={handleSubmit} className="border bg-light bg-gradient rounded p-3">
             <Form.Group className="mb-3" controlId="formLoginEmail">
-              <Form.Label>Email</Form.Label>
+              <Form.Label>User</Form.Label>
               <Form.Control 
                 name="email" 
-                placeholder="email" 
+                placeholder="username or email" 
                 value={values.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
