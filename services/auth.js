@@ -2,6 +2,7 @@ const createError = require('http-errors')
 const LocalStrategy = require('passport-local');
 const FacebookStrategy = require('passport-facebook');
 const {User, FederatedUser} = require('../models');
+const { Op } = require('@sequelize/core');
 
 const checkAuthentication = (req, res, next) => {
   if(req.isAuthenticated()) {
@@ -30,17 +31,17 @@ const login = async (data) => {
     const {email, password} = data
     const user = await User.findOne({
       where: {
-        email
+        [Op.or]: [{email}, {username: email}]
       }
     })
 
     if(!user) {
-      throw createError(401, 'Incorrect email or password')
+      throw createError(401, 'Incorrect username/email or password')
     } else {
       if(await user.validPassword(password)) {
         return user
       } else {
-        throw createError(401, 'Incorrect email or password')
+        throw createError(401, 'Incorrect username/email or password')
       }
     }
   } catch(err) {
