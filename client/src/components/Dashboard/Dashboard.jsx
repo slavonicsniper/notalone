@@ -249,7 +249,7 @@ export default function Dashboard(props) {
 
     return (
         <Container>
-        <ToastContainer position="bottom-end" className="p-3">
+        <ToastContainer position="top-end" className="p-3" style={{zIndex: 1}}>
             {user && user.Activities.length === 0 &&
             <Toast show={showNotificationActivity} onClose={() => setShowNotificationActivity(!showNotificationActivity)}>
                 <Toast.Header>
