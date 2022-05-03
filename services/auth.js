@@ -86,10 +86,16 @@ const initPassport = passport => {
     }
   }));
   passport.serializeUser(function(user, done) {
-      return done(null, {username: user.username, uuid: user.uuid});
+      return done(null, user.id);
   });  
-  passport.deserializeUser(function(user, done) {
-      return done(null, user);
+  passport.deserializeUser(async (id, done) => {
+    try {
+    const user = await User.findByPk(id)
+    if(!user) return done(null, false)
+    return done(null, user);
+    } catch(err) {
+      done(err)
+    }
   });
   return passport
 }
