@@ -33,15 +33,15 @@ function UserCard(props) {
                     </ListGroup.Item>
                     <ListGroup.Item variant="light">
                         <strong>Interested in: </strong>
-                        <Stack className="mt-2"direction="horizontal" gap={2}>                           
-                            {props.user.Activities.map(activity => <Badge pill bg="primary" key={activity.uuid}>{activity.name}</Badge>)}
-                        </Stack>
+                        <Row>
+                            {props.user.Activities.map(activity => <Col key={activity.uuid}><Badge pill bg="primary" >{activity.name}</Badge></Col>)}
+                        </Row>
                     </ListGroup.Item>
                     <ListGroup.Item variant="light">
                         <strong>Available: </strong>    
-                        <Stack className="mt-2"direction="horizontal" gap={2}>                        
-                            {props.user.Availabilities.map(availability => <Badge pill bg="success" key={availability.uuid}>{availability.day} {availability.start_time} - {availability.end_time}</Badge>)}
-                        </Stack>
+                        <Row>
+                            {props.user.Availabilities.map(availability => <Col key={availability.uuid}><Badge pill bg="success" >{availability.day} {availability.start_time} - {availability.end_time}</Badge></Col>)}
+                        </Row>
                     </ListGroup.Item>
                 </ListGroup>
             </Modal.Body>
