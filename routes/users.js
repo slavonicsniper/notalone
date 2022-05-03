@@ -271,17 +271,6 @@ router.get('/login/success', checkAuthentication, (req, res, next) => {
   })
 })
 
-router.post('/login', passport.authenticate('local'), (req, res,) => {
-  res.status(200).send({
-    status: 'Success',
-    message: 'Authenticated',
-    data: {
-      username: req.user.username,
-      uuid: req.user.uuid
-    }
-  })
-})
-
 router.get('/login/facebook', passport.authenticate('facebook'))
 
 router.get('/login/facebook/callback', passport.authenticate('facebook', {
