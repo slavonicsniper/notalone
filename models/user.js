@@ -60,6 +60,7 @@ module.exports = (sequelize, DataTypes) => {
     country: DataTypes.STRING,
     region: DataTypes.STRING,
     age: DataTypes.INTEGER,
+    description: DataTypes.STRING,
   }, {
     sequelize,
     modelName: 'User',

@@ -83,6 +83,7 @@ export default function Profile(props) {
         initialValues={{
             username: user.username,
             email: user.email,
+            description: user.description,
             country: user.country,
             region: user.region,
             city: user.city,
@@ -110,6 +111,21 @@ export default function Profile(props) {
                           <Form.Label>Email</Form.Label>
                           <Form.Control value={values.email} readOnly/>
                         </Form.Group>
+                        <Form.Group className="mb-3" controlId="formRegisterDescription">
+                              <Form.Label>Description</Form.Label>
+                              <Form.Control 
+                                name="description" 
+                                placeholder="description"
+                                value={values.description}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                isInvalid={touched.description && errors.description}
+                                isValid={touched.description && !errors.description}
+                              />
+                              <Form.Control.Feedback type="invalid">
+                                {errors.description}
+                              </Form.Control.Feedback>
+                            </Form.Group>
                         <Form.Group className="mb-3" controlId="formRegisterCountry">
                             <Form.Label>Country</Form.Label>
                             <CountryDropdown 

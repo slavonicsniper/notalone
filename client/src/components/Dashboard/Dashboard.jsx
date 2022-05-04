@@ -3,6 +3,7 @@ import User from '../../services/User';
 import {Row, Col, Card, Container, ListGroup, Button, Modal, Placeholder, Stack, Badge, Alert, ToastContainer, Toast, Tooltip, OverlayTrigger} from 'react-bootstrap'
 import SendMessage from './SendMessage';
 import userAvatar from './userAvatar.png'
+import './Dashboard.css'
 
 function UserCard(props) {
     return (
@@ -23,6 +24,8 @@ function UserCard(props) {
             <Modal.Body>
                 <ListGroup variant="flush">
                     <ListGroup.Item variant="light">
+                        <strong>Description:</strong> {props.user.description}
+                        <br/>
                         <strong>City:</strong> {props.user.city}
                         <br/>
                         <strong>Country:</strong> {props.user.country}
@@ -333,16 +336,14 @@ export default function Dashboard(props) {
                                     <Card.Img variant="top" src={userAvatar} />
                                     <Card.Body>
                                         <Card.Title>{user.username}</Card.Title>
-                                        <Card.Text>
-                                            Here will go some description about the user.
-                                        </Card.Text>
+                                        <Card.Text className="description" >{user.description ? user.description : "No description"}</Card.Text>
                                     </Card.Body>
                                     <ListGroup className="list-group-flush">
                                         <ListGroup.Item className="text-truncate">                        
-                                            <small className="text-muted">{user.Activities.length > 0 ? user.Activities.map(activity => activity.name).join(', ') : 'Undefined'}</small>
+                                            <small className="text-muted">{user.Activities.length > 0 ? user.Activities.map(activity => activity.name).join(', ') : 'No activities'}</small>
                                         </ListGroup.Item>
                                         <ListGroup.Item className="text-truncate">
-                                        <small className="text-muted">{user.Availabilities.length > 0 ? user.Availabilities.map(availability => `${availability.day} ${availability. start_time} - ${availability.end_time}`).join(', ') : 'Undefined'}</small>
+                                        <small className="text-muted">{user.Availabilities.length > 0 ? user.Availabilities.map(availability => `${availability.day} ${availability. start_time} - ${availability.end_time}`).join(', ') : 'No availability'}</small>
                                         </ListGroup.Item>
                                     </ListGroup>
                                     <Card.Body>
