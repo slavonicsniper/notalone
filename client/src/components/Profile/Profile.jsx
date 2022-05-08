@@ -14,6 +14,8 @@ const schema = yup.object().shape({
         .length(4, "Invalid year")
         .test("age", "Sorry but you are too old.", (age) => !age || age > 1942)
         .test("age", "Sorry but you are too young.", (age) => !age || age < new Date().getFullYear() - 15),
+    description: yup.string()
+        .max(255)
   });
 
 export default function Profile(props) {
@@ -114,6 +116,8 @@ export default function Profile(props) {
                         <Form.Group className="mb-3" controlId="formRegisterDescription">
                               <Form.Label>Description</Form.Label>
                               <Form.Control 
+                                as="textarea" 
+                                rows={3}
                                 name="description" 
                                 placeholder="description"
                                 value={values.description}
