@@ -24,15 +24,26 @@ function UserCard(props) {
             <Modal.Body>
                 <ListGroup variant="flush">
                     <ListGroup.Item variant="light">
-                        <strong>Description:</strong> {props.user.description}
+                        {props.user.description && <p>{props.user.description}</p>}
+                        {props.user.city && 
+                        <>
+                        <strong>City:</strong> {props.user.city} 
                         <br/>
-                        <strong>City:</strong> {props.user.city}
-                        <br/>
+                        </>}
+                        {props.user.country &&
+                        <>
                         <strong>Country:</strong> {props.user.country}
                         <br/>
+                        </>}
+                        {props.user.region &&
+                        <>
                         <strong>Region:</strong> {props.user.region}
                         <br/>
+                        </>}
+                        {props.user.age && 
+                        <>
                         <strong>Age:</strong> {new Date().getFullYear() - props.user.age}
+                        </>}
                     </ListGroup.Item>
                     <ListGroup.Item variant="light">
                         <strong>Interested in: </strong>
