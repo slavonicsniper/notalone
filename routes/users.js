@@ -303,7 +303,7 @@ router.get('/', checkAuthentication, async (req, res, next) => {
           [Op.ne]: req.user.uuid
         }
       },
-      attributes: ['username', 'uuid', 'country', 'region', 'city', 'age']
+      attributes: ['username', 'uuid', 'country', 'region', 'city', 'age', 'description']
     }
 
     const user = await User.findOne({
